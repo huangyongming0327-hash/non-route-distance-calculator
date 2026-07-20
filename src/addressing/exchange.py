@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from itertools import islice
 from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from src.addressing.service import AddressBookService, TRUSTED_STATUSES
@@ -22,6 +24,7 @@ PENDING_HEADERS = (
     "是否确认",
     "确认备注",
 )
+HEADER_SCAN_LIMIT = 20
 
 
 @dataclass(frozen=True)
@@ -30,6 +33,75 @@ class ImportSummary:
     skipped: int
     failed: int
     errors: tuple[str, ...] = ()
+
+
+def _exact_header_text(value: object) -> str:
+    """只忽略单元格值两端空白，字段名本身不做模糊或同义匹配。"""
+    return "" if value is None else str(value).strip()
+
+
+def _summarize_scan_row(row_number: int, values: tuple[object, ...]) -> str:
+    cells: list[str] = []
+    nonempty_total = 0
+    for column, value in enumerate(values, start=1):
+        text = _exact_header_text(value).replace("\r", " ").replace("\n", " ")
+        if not text:
+            continue
+        nonempty_total += 1
+        if len(cells) >= 8:
+            continue
+        if len(text) > 40:
+            text = text[:37] + "..."
+        cells.append(f"{get_column_letter(column)}={text!r}")
+    if not cells:
+        return f"第 {row_number} 行：(空白)"
+    suffix = f"；其他 {nonempty_total - len(cells)} 个非空单元格" if nonempty_total > len(cells) else ""
+    return f"第 {row_number} 行：" + "，".join(cells) + suffix
+
+
+def _detect_pending_header(
+    sheet,
+) -> tuple[int | None, dict[str, int], tuple[tuple[object, ...], ...], str]:
+    scanned_rows = tuple(
+        tuple(row) for row in islice(sheet.iter_rows(values_only=True), HEADER_SCAN_LIMIT)
+    )
+    required = set(PENDING_HEADERS)
+    candidates: list[tuple[int, tuple[str, ...], tuple[str, ...]]] = []
+    for row_number, values in enumerate(scanned_rows, start=1):
+        positions: dict[str, int] = {}
+        for column, value in enumerate(values, start=1):
+            header = _exact_header_text(value)
+            if header in required and header not in positions:
+                positions[header] = column
+        missing = tuple(header for header in PENDING_HEADERS if header not in positions)
+        if not missing:
+            return row_number, positions, scanned_rows, ""
+        matched = tuple(header for header in PENDING_HEADERS if header in positions)
+        if matched:
+            candidates.append((row_number, matched, missing))
+
+    summaries = [
+        _summarize_scan_row(row_number, values)
+        for row_number, values in enumerate(scanned_rows, start=1)
+    ]
+    if not summaries:
+        summaries = ["(工作表为空)"]
+    if candidates:
+        row_number, matched, missing = max(candidates, key=lambda item: (len(item[1]), -item[0]))
+        candidate = (
+            f"可能的表头行：第 {row_number} 行（匹配 {len(matched)}/{len(PENDING_HEADERS)}；"
+            f"缺少：{'、'.join(missing)}）"
+        )
+    else:
+        candidate = "可能的表头行：未发现包含必需字段名称的候选行"
+    diagnostic = (
+        f"前 {HEADER_SCAN_LIMIT} 行中未找到同时包含全部必需字段的表头。\n"
+        f"实际扫描 {len(scanned_rows)} 行内容摘要：\n"
+        + "\n".join(summaries)
+        + "\n"
+        + candidate
+    )
+    return None, {}, scanned_rows, diagnostic
 
 
 def export_pending_addresses(path: str | Path, addresses: list[ConfirmedAddress]) -> Path:
@@ -84,26 +156,30 @@ def import_confirmation_results(
     success = skipped = failed = 0
     try:
         sheet = workbook[workbook.sheetnames[0]]
-        headers = [normalized_text(sheet.cell(1, column).value) for column in range(1, sheet.max_column + 1)]
-        positions = {header: index + 1 for index, header in enumerate(headers)}
-        missing = [header for header in PENDING_HEADERS if header not in positions]
-        if missing:
-            return ImportSummary(0, 0, 1, (f"缺少列：{'、'.join(missing)}",))
+        header_row, positions, _, diagnostic = _detect_pending_header(sheet)
+        if header_row is None:
+            return ImportSummary(0, 0, 1, (diagnostic,))
+
+        def value_at(values: tuple[object, ...], header: str) -> object:
+            index = positions[header] - 1
+            return values[index] if index < len(values) else None
 
         seen: dict[str, tuple[str, str, str]] = {}
-        for row in range(2, sheet.max_row + 1):
-            address_id = normalized_text(sheet.cell(row, positions["地址ID"]).value)
+        rows = sheet.iter_rows(min_row=header_row + 1, values_only=True)
+        for row_number, values in enumerate(rows, start=header_row + 1):
+            values = tuple(values)
+            address_id = normalized_text(value_at(values, "地址ID"))
             if not address_id:
                 skipped += 1
                 continue
-            query = normalized_text(sheet.cell(row, positions["修正查询地址"]).value)
-            decision = normalized_text(sheet.cell(row, positions["是否确认"]).value, remove_all_space=True)
-            note = normalized_text(sheet.cell(row, positions["确认备注"]).value)
+            query = normalized_text(value_at(values, "修正查询地址"))
+            decision = normalized_text(value_at(values, "是否确认"), remove_all_space=True)
+            note = normalized_text(value_at(values, "确认备注"))
             signature = (query, decision, note)
             if address_id in seen:
                 if seen[address_id] != signature:
                     failed += 1
-                    errors.append(f"第 {row} 行：地址ID重复且内容冲突")
+                    errors.append(f"第 {row_number} 行：地址ID重复且内容冲突")
                 else:
                     skipped += 1
                 continue
@@ -111,7 +187,7 @@ def import_confirmation_results(
             current = service.repository.get_address(address_id)
             if current is None:
                 failed += 1
-                errors.append(f"第 {row} 行：地址ID不存在")
+                errors.append(f"第 {row_number} 行：地址ID不存在")
                 continue
             try:
                 if decision in {"", "否"}:
@@ -135,13 +211,13 @@ def import_confirmation_results(
                     continue
                 if decision != "是":
                     failed += 1
-                    errors.append(f"第 {row} 行：是否确认值无效“{decision}”")
+                    errors.append(f"第 {row_number} 行：是否确认值无效“{decision}”")
                     continue
                 if query and query != current.query_address:
                     service.save_query_address(address_id, query)
                     if service.geocoder is None:
                         failed += 1
-                        errors.append(f"第 {row} 行：修正地址已保存，但缺少地理编码客户端，尚未确认")
+                        errors.append(f"第 {row_number} 行：修正地址已保存，但缺少地理编码客户端，尚未确认")
                         continue
                     service.reparse(address_id, confirm_corrected=True)
                     reparsed = service.repository.get_address(address_id)
@@ -154,7 +230,7 @@ def import_confirmation_results(
                 success += 1
             except Exception as exc:
                 failed += 1
-                errors.append(f"第 {row} 行：{exc}")
+                errors.append(f"第 {row_number} 行：{exc}")
     finally:
         workbook.close()
     return ImportSummary(success, skipped, failed, tuple(errors))
