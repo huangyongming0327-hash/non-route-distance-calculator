@@ -1,0 +1,34 @@
+[
+  {
+    "stage": "导入PySide6",
+    "elapsed_ms": 99.64
+  },
+  {
+    "stage": "创建主窗口",
+    "elapsed_ms": 15.44
+  },
+  {
+    "stage": "主窗口首次显示",
+    "elapsed_ms": 72.65
+  },
+  {
+    "stage": "加载配置",
+    "elapsed_ms": 3.21
+  },
+  {
+    "stage": "检测Excel/WPS",
+    "elapsed_ms": 0.3
+  },
+  {
+    "stage": "加载默认工作簿",
+    "elapsed_ms": 6086.52
+  },
+  {
+    "stage": "打开SQLite",
+    "elapsed_ms": 1.68
+  },
+  {
+    "stage": "加载地址清单",
+    "elapsed_ms": 4.23
+  }
+]

@@ -1,12 +1,28 @@
 @echo off
 setlocal
+
 cd /d "%~dp0.."
+
 if not exist ".venv\Scripts\python.exe" (
-  echo [ERROR] 未找到项目虚拟环境：.venv
-  echo 请先按 README.md 安装依赖。
-  pause
-  exit /b 1
+    echo.
+    echo ERROR: Python virtual environment was not found.
+    echo Expected file:
+    echo %CD%\.venv\Scripts\python.exe
+    echo.
+    pause
+    exit /b 1
 )
-".venv\Scripts\python.exe" -m src.main
-if errorlevel 1 pause
-endlocal
+
+".venv\Scripts\python.exe" -m src.main %*
+
+set "EXIT_CODE=%ERRORLEVEL%"
+
+if not "%EXIT_CODE%"=="0" (
+    echo.
+    echo Program failed to start.
+    echo Exit code: %EXIT_CODE%
+    echo.
+    pause
+)
+
+endlocal & exit /b %EXIT_CODE%

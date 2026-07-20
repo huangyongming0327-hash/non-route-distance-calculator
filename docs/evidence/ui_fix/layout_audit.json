@@ -1,0 +1,80 @@
+[
+  {
+    "file": "1366x768_calculation.png",
+    "window": [
+      1366,
+      768
+    ],
+    "tab": "运距计算",
+    "calculation_vertical_scroll_max": 451,
+    "calculation_horizontal_scroll_max": 0,
+    "address_rows": null,
+    "address_table_height": null,
+    "address_visible_row_capacity": null
+  },
+  {
+    "file": "1366x768_address_confirmation.png",
+    "window": [
+      1366,
+      768
+    ],
+    "tab": "地址确认",
+    "calculation_vertical_scroll_max": null,
+    "calculation_horizontal_scroll_max": null,
+    "address_rows": 31,
+    "address_table_height": 524,
+    "address_visible_row_capacity": 12
+  },
+  {
+    "file": "1366x768_api_settings.png",
+    "window": [
+      1366,
+      768
+    ],
+    "tab": "API与设置",
+    "calculation_vertical_scroll_max": null,
+    "calculation_horizontal_scroll_max": null,
+    "address_rows": null,
+    "address_table_height": null,
+    "address_visible_row_capacity": null
+  },
+  {
+    "file": "1920x1080_calculation.png",
+    "window": [
+      1920,
+      1080
+    ],
+    "tab": "运距计算",
+    "calculation_vertical_scroll_max": 139,
+    "calculation_horizontal_scroll_max": 0,
+    "address_rows": null,
+    "address_table_height": null,
+    "address_visible_row_capacity": null
+  },
+  {
+    "file": "1920x1080_address_confirmation.png",
+    "window": [
+      1920,
+      1080
+    ],
+    "tab": "地址确认",
+    "calculation_vertical_scroll_max": null,
+    "calculation_horizontal_scroll_max": null,
+    "address_rows": 31,
+    "address_table_height": 836,
+    "address_visible_row_capacity": 20
+  },
+  {
+    "file": "1920x1080_api_settings.png",
+    "window": [
+      1920,
+      1080
+    ],
+    "tab": "API与设置",
+    "calculation_vertical_scroll_max": null,
+    "calculation_horizontal_scroll_max": null,
+    "address_rows": null,
+    "address_table_height": null,
+    "address_visible_row_capacity": null
+  }
+]
