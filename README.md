@@ -4,7 +4,7 @@ Windows 本地桌面工具，使用高德地理编码和路径规划 2.0 普通�
 
 > 普通驾车参考距离，不代表货车实际可通行路线。本工具不考虑货车限高、限宽、限重、禁行及车牌限制。
 
-当前状态：**TASK-005A 已完成并暂停等待总指挥验收；尚未正式发布 V1.0。**
+当前状态：**TASK-005A-UI-FIX-001 已完成并暂停等待总指挥验收；尚未正式发布 V1.0。**
 
 ## 快速启动
 
@@ -15,7 +15,15 @@ cd "D:\AI project\非线路运距计算"
 .\.venv\Scripts\python.exe -m src.main
 ```
 
-也可双击 `scripts/run_prototype.bat`。
+也可双击 `scripts/run_prototype.bat`。脚本不需要管理员权限，会自动进入项目根目录并检查 `.venv`；仅在启动失败时暂停显示错误。
+
+## 三页签界面
+
+- **运距计算**：工作簿、字段映射、运行设置、前 10 行预览、处理进度和任务/结果按钮。小屏幕下使用页内纵向滚动。
+- **地址确认**：自动显示当前可信地址库。无选中行时单条操作按钮禁用；导入确认结果不需选中行。
+- **API与设置**：Key 安全存储、删除、连接测试、接口状态、开发/测试模式和低频缓存清理。
+
+Qt 6 使用 Windows 原生高 DPI 行为，支持 100%/125%/150% 缩放，不要为本工具永久修改 Windows 缩放比例。
 
 ## 正式口径
 
@@ -29,9 +37,9 @@ cd "D:\AI project\非线路运距计算"
 
 ## 使用流程
 
-1. 在“API 设置”中安全保存高德 Web 服务 Key；不要把 Key 写入聊天、配置、Excel 或文档。
+1. 在“API与设置”中安全保存高德 Web 服务 Key；不要把 Key 写入聊天、配置、Excel 或文档。
 2. 选择工作簿并确认工作表、表头和字段映射。
-3. 在“地址确认”区刷新唯一地址清单。先处理“待进一步核实”和真正有风险的“未确认”地址，不需要逐行确认订单。
+3. 进入“地址确认”页处理唯一地址。先处理“待进一步核实”和真正有风险的“未确认”地址，不需要逐行确认订单。
 4. 可使用原始地址、高德标准地址或只用于查询的修正地址重新解析；原 Excel 城市和详细地址不会修改。
 5. 点击“确认定位正确”后，同地址以后直接复用；也可导出 Excel 待确认清单，线下填写后按地址ID导回。
 6. 选择 Excel/WPS 和普通驾车正式计算，确认风险后开始。程序只写工作副本和新结果文件，不覆盖输入。
@@ -55,7 +63,7 @@ cd "D:\AI project\非线路运距计算"
 - Excel/WPS 均为：67 条距离、52 定位待复核、12 缓存复用参考、3 城市冲突、6 风险过高、1 多目的地。
 - 业务结果逐行一致；两次 Office 运行均为 0 HTTP。
 - 原样表和 TASK-004R 两份结果文件哈希保持不变。
-- 自动化回归：157 passed、2 skipped、0 failed；Excel/WPS 实机保存保护另行通过。
+- 自动化回归：176 passed、2 skipped、0 failed；其中新增 19 项 GUI 检查，Excel/WPS 实机保存保护沿用既有验收边界。
 
 ## 验证命令
 
@@ -85,9 +93,11 @@ Excel/WPS 阶段会启动本工具专属隐藏 Office 进程并执行安全保�
 - `docs/CONFIRMED_ADDRESS_DESIGN.md`
 - `docs/ADDRESS_CONFIRMATION_TEST_REPORT.md`
 - `docs/TASK-005A_RESULT.md`
+- `docs/UI_RESPONSIVE_FIX_REPORT.md`
+- `docs/TASK-005A-UI-FIX-001_RESULT.md`
+- `docs/evidence/ui_fix/`
 - `samples/expected/address_confirmation/Excel_样表_可信地址库结果_TASK-005A_待验收.xlsm`
 - `samples/expected/address_confirmation/WPS_样表_可信地址库结果_TASK-005A_待验收.xlsm`
 - `outputs/task005a/待确认地址清单_TASK-005A.xlsx`
 
 专业货车方案因最低采购成本过高已终止；历史文档保留并标记，不代表当前实现。
-

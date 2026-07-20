@@ -1,0 +1,80 @@
+# TASK-005A-UI-FIX-001 交付结果
+
+状态：**已完成，已暂停，等待总指挥验收**
+完成日期：2026-07-20
+分支：`fix/task-005a-responsive-ui`
+基线：`task-005a-baseline`
+实现 Commit：`3ad7987efed66cacfaaa85d929f75e82a682e402`
+实现提交说明：`fix: make TASK-005A UI responsive and usable`
+
+## 交付摘要
+
+- 主界面已分为“运距计算”、“地址确认”、“API与设置”三个页签。
+- 地址表格已成为地址页的主体；1366×768 直接显示 12 行，1920×1080 直接显示 20 行。
+- 单条地址按钮已与选中状态联动；导入确认结果不依赖选中行。
+- 修正查询地址后会明确提示重新解析；原 Excel 地址保持只读。
+- 启动界面先显示，默认工作簿只读检查改为 Qt 工作线程。
+- `scripts/run_prototype.bat` 已改为英文可靠脚本，启动成功时不多报错，失败时显示退出码并暂停。
+
+## 验收结果
+
+| 验收项 | 结果 |
+| --- | --- |
+| 主窗口创建 | 通过 |
+| 三个页签 | 通过 |
+| 运距计算主要控件 | 通过 |
+| 地址表格可见并可扩展 | 通过 |
+| API 设置控件 | 通过 |
+| 未选行单条按钮禁用 | 通过 |
+| 选行后单条按钮启用 | 通过 |
+| 导入按钮不依赖选行 | 通过 |
+| 1366×768 布局 | 通过 |
+| 1920×1080 表格扩展 | 通过 |
+| 最大化文字高度 | 通过 |
+| 高 DPI 无固定高度冲突 | 通过 |
+| 启动脚本冒烟启动 | 通过 |
+| 启动/页签切换无 HTTP | 通过，0 调用 |
+| 全量离线 pytest | `176 passed, 2 skipped, 0 failed` |
+
+2 项 skipped 为既有、需显式启用的真实 Excel/WPS 集成测试。本 GUI 任务没有启动 Office，也没有调用真实高德 API。
+
+## 启动耗时
+
+| 阶段 | 本机实测 |
+| --- | ---: |
+| 导入 PySide6 | 99.64 ms |
+| 创建主窗口 | 15.44 ms |
+| 主窗口首次显示 | 72.65 ms |
+| 加载配置 | 3.21 ms |
+| 检测 Excel/WPS | 0.30 ms |
+| 默认工作簿只读分析 | 6086.52 ms（后台线程） |
+| 打开 SQLite | 1.68 ms |
+| 加载地址清单 | 4.23 ms |
+
+## 业务保护
+
+已确认未修改：只处理“非线路报价”、高德普通驾车 v5、地址确认库、地址 ID、确认状态、地址修改后的缓存失效、API Key 安全存储、普通驾车缓存、Excel/WPS 保存、原文件保护、结果列、警告规则、暂停/恢复/停止和非目标行不修改。
+
+## 截图证据
+
+- `docs/evidence/ui_fix/1366x768_calculation.png`
+- `docs/evidence/ui_fix/1366x768_address_confirmation.png`
+- `docs/evidence/ui_fix/1366x768_api_settings.png`
+- `docs/evidence/ui_fix/1920x1080_calculation.png`
+- `docs/evidence/ui_fix/1920x1080_address_confirmation.png`
+- `docs/evidence/ui_fix/1920x1080_api_settings.png`
+
+## 已知问题和后续建议
+
+- 只读工作簿分析本身仍需约 6.1 秒，但不再阻塞主界面。
+- 小屏运距计算页按设计使用纵向滚动。
+- 建议总指挥验收三个页签后，继续导入现有确认清单；导入时不需要选中地址行。
+- 本任务到此暂停，不继续 EXE 打包、最终 GUI 美化、PDF 说明或 V1.0 发布。
+
+## 重新启动
+
+双击 `scripts\run_prototype.bat`，或在项目根目录运行：
+
+```powershell
+.\scripts\run_prototype.bat
+```

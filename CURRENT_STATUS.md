@@ -7,7 +7,7 @@
 | 项目 | 当前值 |
 | --- | --- |
 | 项目名称 | 非线路运距计算工具 V1.0（高德普通驾车距离版） |
-| 当前阶段 | TASK-005A 已完成，暂停等待总指挥验收 |
+| 当前阶段 | TASK-005A-UI-FIX-001 已完成，暂停等待总指挥验收 |
 | 正式接口 | 高德地理编码 v3 + 路径规划 2.0 普通驾车 v5 |
 | 可信地址库 | `cache/driving_real.sqlite` / `confirmed_addresses`，31 条 |
 | 唯一地址 | 30 个原始详细地址文本；31 个城市限定地址ID |
@@ -16,7 +16,9 @@
 | 路线版本引用 | 24 个有效唯一路线带两端地址ID和地理编码版本 |
 | Excel/WPS | 新 TASK-005A 待验收文件均通过，业务结果逐行一致，各 0 HTTP |
 | 工作簿保护 | 原样表及 TASK-004R 文件哈希不变；A:P、公式、图片、筛选、隐藏行和原条件格式保留 |
-| 自动化测试 | 157 passed、2 skipped、0 failed；两项桌面 Office 测试由本轮实机验收覆盖 |
+| GUI | 三页签响应式布局；1366×768 地址表可见 12 行；1920×1080 可见 20 行 |
+| 启动 | 主窗口首次显示约 72.65 ms；约 6.1 s 工作簿检查已移至后台 Qt 线程 |
+| 自动化测试 | 176 passed、2 skipped、0 failed；跳过项为需显式开关的桌面 Office 集成测试 |
 | 发布状态 | 尚未正式发布 V1.0 |
 
 ## TASK-005A 已完成
@@ -29,6 +31,16 @@
 - 待确认清单按地址ID导回，重复相同项跳过，重复冲突项失败，并报告成功/跳过/失败数。
 - 路线缓存引用两端地理编码版本；修正查询地址或坐标会使相关旧路线失效；行级摘要也包含地址版本。
 - TASK-004R 旧路线可一次性迁移为带版本缓存，本次 Excel/WPS 样表均不需要新的 HTTP。
+
+## TASK-005A-UI-FIX-001 已完成
+
+- 主界面改为“运距计算”、“地址确认”和“API与设置”三个页签。
+- 计算和 API 页支持页内纵向滚动；地址表格占用地址页剩余空间并提供横向/纵向滚动。
+- 地址单条操作按钮已与选中行联动，导入确认结果不再依赖选中行。
+- 确认状态、风险和城市冲突使用可读颜色；修改查询地址后显示重新解析提示；原 Excel 地址保持只读。
+- Qt 6 使用原生高 DPI，无固定控件高度；5 个分辨率/缩放组合及最大化/非最大化检查通过。
+- 启动记录 PySide6、主窗口、配置、Office 注册、SQLite 和地址清单耗时；启动不创建 Office 进程、不调用 API。
+- 实现分支 `fix/task-005a-responsive-ui`，实现 Commit `3ad7987efed66cacfaaa85d929f75e82a682e402`。
 
 ## 当前待人工处理
 
@@ -50,9 +62,11 @@
 - `docs/CONFIRMED_ADDRESS_DESIGN.md`
 - `docs/ADDRESS_CONFIRMATION_TEST_REPORT.md`
 - `docs/TASK-005A_RESULT.md`
+- `docs/UI_RESPONSIVE_FIX_REPORT.md`
+- `docs/TASK-005A-UI-FIX-001_RESULT.md`
+- `docs/evidence/ui_fix/`
 - `samples/expected/address_confirmation/Excel_样表_可信地址库结果_TASK-005A_待验收.xlsm`
 - `samples/expected/address_confirmation/WPS_样表_可信地址库结果_TASK-005A_待验收.xlsm`
 - `outputs/task005a/待确认地址清单_TASK-005A.xlsx`
 
-TASK-005A 到此暂停，等待总指挥验收。
-
+TASK-005A-UI-FIX-001 到此暂停，等待总指挥验收。验收通过后建议继续导入现有地址确认清单；暂不进行 EXE、PDF、最终美化或 V1.0 发布。
