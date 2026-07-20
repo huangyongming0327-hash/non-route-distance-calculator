@@ -1,0 +1,62 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage.xml
+.coverage
+htmlcov/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Project-local runtime data and build outputs
+/build/
+/release/
+/temp/
+/cache/
+/logs/
+/outputs/
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.db
+*.db3
+*.db-*
+*.db-wal
+*.db-shm
+*.db-journal
+
+# User-owned and generated workbook copies/results
+/samples/input/
+/samples/working/
+/samples/expected/
+*.xls
+*.xlsx
+*.xlsm
+*.xlsb
+~$*.xls*
+
+# Synthetic workbook fixtures required by the test suite
+!tests/fixtures/*.xlsm
+
+# Local secrets and machine-specific configuration
+/config/local*.json
+/config/*key*
+/config/*token*
+/config/*password*
+/config/*secret*
+/config/*credential*
+.env
+.env.*
+*.credential
+*.key
+*.pem

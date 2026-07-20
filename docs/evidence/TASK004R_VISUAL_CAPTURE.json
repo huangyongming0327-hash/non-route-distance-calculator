@@ -1,0 +1,2007 @@
+{
+  "captured_at": "2026-07-20T15:38:00+08:00",
+  "files": {
+    "excel_native": {
+      "label": "excel_native",
+      "render_engine": "excel",
+      "path": "D:\\AI project\\非线路运距计算\\samples\\expected\\driving_real\\Excel_样表_普通驾车距离结果_待验收.xlsm",
+      "captures": [
+        {
+          "label": "top",
+          "range": "M1:S12",
+          "output": "D:\\AI project\\非线路运距计算\\docs\\evidence\\visuals\\excel_native\\top.png",
+          "image": {
+            "size_bytes": 5810,
+            "sha256": "E37B995EA0CDDC2FEE157CE6FC0A83033302BC5F6F3FA15A18FB9BD16351B49E",
+            "pixel_size": [
+              4005,
+              1396
+            ],
+            "rgba_pixel_sha256": "B1A537C3F13B1F2CA6E282FD3A9BE3E25255EDA1420586DDE4B89689A349350A"
+          }
+        },
+        {
+          "label": "conflict",
+          "range": "E35:S42",
+          "output": "D:\\AI project\\非线路运距计算\\docs\\evidence\\visuals\\excel_native\\conflict.png",
+          "image": {
+            "size_bytes": 5810,
+            "sha256": "E37B995EA0CDDC2FEE157CE6FC0A83033302BC5F6F3FA15A18FB9BD16351B49E",
+            "pixel_size": [
+              4005,
+              1396
+            ],
+            "rgba_pixel_sha256": "B1A537C3F13B1F2CA6E282FD3A9BE3E25255EDA1420586DDE4B89689A349350A"
+          }
+        },
+        {
+          "label": "multi_destination",
+          "range": "E244:S250",
+          "output": "D:\\AI project\\非线路运距计算\\docs\\evidence\\visuals\\excel_native\\multi_destination.png",
+          "image": {
+            "size_bytes": 5810,
+            "sha256": "E37B995EA0CDDC2FEE157CE6FC0A83033302BC5F6F3FA15A18FB9BD16351B49E",
+            "pixel_size": [
+              4005,
+              1396
+            ],
+            "rgba_pixel_sha256": "B1A537C3F13B1F2CA6E282FD3A9BE3E25255EDA1420586DDE4B89689A349350A"
+          }
+        }
+      ],
+      "session": {
+        "started_at": "2026-07-20T15:38:00+08:00",
+        "processes_before": [],
+        "dispatch": "DispatchEx(Excel.Application)",
+        "hwnd": 4656060,
+        "pid": 14664,
+        "hwnd_pid_match_at_creation": true,
+        "ownership_confirmed": true,
+        "version": "16.0",
+        "build": "20131.0",
+        "security_settings": {
+          "AutomationSecurity": {
+            "requested": 3,
+            "accepted": true,
+            "readback": 3
+          },
+          "EnableEvents": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "DisplayAlerts": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "AskToUpdateLinks": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "ScreenUpdating": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "Calculation": {
+            "requested": -4135,
+            "accepted": false,
+            "error": "com_error(-2147352567, '发生意外。', (0, 'Microsoft Excel', '不能设置类 Application 的 Calculation 属性', 'xlmain11.chm', 0, -2146827284), None)"
+          }
+        },
+        "open_workbook_count_before_quit": 0,
+        "quit_called": true,
+        "exact_pid_terminate_fallback_used": true,
+        "exact_pid_terminated": 14664,
+        "own_pid_residual": false,
+        "preexisting_processes_unchanged": true,
+        "processes_after": [],
+        "finished_at": "2026-07-20T15:38:20+08:00"
+      }
+    },
+    "excel_via_wps": {
+      "label": "excel_via_wps",
+      "render_engine": "wps",
+      "path": "D:\\AI project\\非线路运距计算\\samples\\expected\\driving_real\\Excel_样表_普通驾车距离结果_待验收.xlsm",
+      "captures": [
+        {
+          "label": "top",
+          "range": "M1:S12",
+          "output": "D:\\AI project\\非线路运距计算\\docs\\evidence\\visuals\\excel_via_wps\\top.png",
+          "image": {
+            "size_bytes": 1272784,
+            "sha256": "A2041356C584986C40F34A04F2CB614B84A2BA109C0B538E76B574AB249C59FC",
+            "pixel_size": [
+              3996,
+              1390
+            ],
+            "rgba_pixel_sha256": "E7E0C4B3A1264FAD5FEE72A93AAC50D38F873237E9ADAD1494866C41C863F1CE"
+          }
+        },
+        {
+          "label": "conflict",
+          "range": "E35:S42",
+          "output": "D:\\AI project\\非线路运距计算\\docs\\evidence\\visuals\\excel_via_wps\\conflict.png",
+          "image": {
+            "size_bytes": 796195,
+            "sha256": "6A287BDAD9C3B65BB2DADA09DDFAEAF7E5ACFCD7114EDA012A7E23352021F00F",
+            "pixel_size": [
+              3996,
+              1390
+            ],
+            "rgba_pixel_sha256": "6EEF9DF6C2B9B41C47AC7C2747132C9B8F1B88142E636FE9BB09DEAA7A7A074F"
+          }
+        },
+        {
+          "label": "multi_destination",
+          "range": "E244:S250",
+          "output": "D:\\AI project\\非线路运距计算\\docs\\evidence\\visuals\\excel_via_wps\\multi_destination.png",
+          "image": {
+            "size_bytes": 974823,
+            "sha256": "493CBF146AE7BBD1C72D89260D67025500DC11C820E92B38AAAF35B32C3D7709",
+            "pixel_size": [
+              3996,
+              1390
+            ],
+            "rgba_pixel_sha256": "9A7A29E604CE881FAD7B4A11A2AF0E873564BD12E8CB69C6759FDE1078554C08"
+          }
+        }
+      ],
+      "session": {
+        "started_at": "2026-07-20T15:38:20+08:00",
+        "processes_before": [
+          {
+            "pid": 6284,
+            "name": "wps.exe",
+            "created_at": "2026-07-18T00:06:04+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wps.exe",
+            "windows": [
+              {
+                "hwnd": 134056,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131688,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131666,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          },
+          {
+            "pid": 6980,
+            "name": "wps.exe",
+            "created_at": "2026-07-18T00:06:15+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wps.exe",
+            "windows": [
+              {
+                "hwnd": 131640,
+                "title": "aspcenter",
+                "visible": false
+              },
+              {
+                "hwnd": 131858,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 197402,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 262594,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 524494,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131864,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328228,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 722728,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 657282,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132440,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          },
+          {
+            "pid": 23360,
+            "name": "wpscloudsvr.exe",
+            "created_at": "2026-07-20T01:46:18+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wpscloudsvr.exe",
+            "windows": [
+              {
+                "hwnd": 198086,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 198284,
+                "title": "qing",
+                "visible": false
+              },
+              {
+                "hwnd": 1183586,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 591866,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 855250,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263726,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 724134,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 460142,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 394602,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132810,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198236,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132710,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132718,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 8194700,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 397150,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1510790,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 984608,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263832,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328882,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 983216,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198234,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198316,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263584,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 330732,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263618,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132692,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198280,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132774,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1378096,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 656210,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 589856,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132680,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132676,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132668,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198136,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 721446,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263396,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 459966,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 524528,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 327954,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 656238,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 590624,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 459230,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 393660,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 327982,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328382,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 460006,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 394112,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263060,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132694,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 330902,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1050780,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          }
+        ],
+        "visible_windows_before": [],
+        "dispatch": "DispatchEx(KET.Application)",
+        "hwnd": 3147982,
+        "pid": 22692,
+        "version": "12.0",
+        "build": 26895.0,
+        "new_processes": [
+          {
+            "pid": 22692,
+            "name": "et.exe",
+            "created_at": "2026-07-20T15:38:21+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\et.exe",
+            "windows": [
+              {
+                "hwnd": 2820312,
+                "title": "DDE Server Window",
+                "visible": false
+              },
+              {
+                "hwnd": 5705198,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 3738644,
+                "title": "et",
+                "visible": false
+              },
+              {
+                "hwnd": 5967148,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 3214412,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 3541970,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 3343832,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 5311884,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 7014202,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 2494054,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          },
+          {
+            "pid": 7032,
+            "name": "wps.exe",
+            "created_at": "2026-07-20T15:38:20+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wps.exe",
+            "windows": [
+              {
+                "hwnd": 3279776,
+                "title": "WPS Office",
+                "visible": false
+              },
+              {
+                "hwnd": 3083504,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 5639628,
+                "title": "wpsoffice",
+                "visible": false
+              },
+              {
+                "hwnd": 3738878,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 2754772,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 2821194,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 5508552,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 13306134,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 5442240,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 15009992,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 6622154,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 3542118,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 3410690,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          }
+        ],
+        "new_et_pids": [
+          22692
+        ],
+        "isolation_confirmed": true,
+        "security_settings": {
+          "AutomationSecurity": {
+            "requested": 3,
+            "accepted": true,
+            "readback": 3
+          },
+          "EnableEvents": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "DisplayAlerts": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "AskToUpdateLinks": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "ScreenUpdating": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "Calculation": {
+            "requested": -4135,
+            "accepted": true,
+            "readback": -4135
+          }
+        },
+        "quit_called": true,
+        "own_pids": [
+          7032,
+          22692
+        ],
+        "own_process_residual_pids": [],
+        "own_pid_residual": false,
+        "preexisting_processes_unchanged": true,
+        "protected_preexisting_pids": [
+          6284,
+          6980
+        ],
+        "cloud_service_pids_before": [
+          23360
+        ],
+        "cloud_service_pids_after": [
+          23360
+        ],
+        "cloud_service_processes_unchanged": true,
+        "visible_windows_after": [],
+        "preexisting_visible_windows_unchanged": true,
+        "processes_after": [
+          {
+            "pid": 6284,
+            "name": "wps.exe",
+            "created_at": "2026-07-18T00:06:04+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wps.exe",
+            "windows": [
+              {
+                "hwnd": 134056,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131688,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131666,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          },
+          {
+            "pid": 6980,
+            "name": "wps.exe",
+            "created_at": "2026-07-18T00:06:15+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wps.exe",
+            "windows": [
+              {
+                "hwnd": 131640,
+                "title": "aspcenter",
+                "visible": false
+              },
+              {
+                "hwnd": 131858,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 197402,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 262594,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 524494,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131864,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328228,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 722728,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 657282,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132440,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          },
+          {
+            "pid": 23360,
+            "name": "wpscloudsvr.exe",
+            "created_at": "2026-07-20T01:46:18+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wpscloudsvr.exe",
+            "windows": [
+              {
+                "hwnd": 198086,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 198284,
+                "title": "qing",
+                "visible": false
+              },
+              {
+                "hwnd": 1183586,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 591866,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 855250,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263726,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 724134,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 460142,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 394602,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132810,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198236,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132710,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132718,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 8194700,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 397150,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1510790,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 984608,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263832,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328882,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 983216,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198234,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198316,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263584,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 330732,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263618,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132692,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198280,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132774,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1378096,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 656210,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 589856,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132680,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132676,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132668,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198136,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 721446,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263396,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 459966,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 524528,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 327954,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 656238,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 590624,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 459230,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 393660,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 327982,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328382,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 460006,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 394112,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263060,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132694,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 330902,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1050780,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          }
+        ],
+        "finished_at": "2026-07-20T15:38:26+08:00"
+      }
+    },
+    "wps_native": {
+      "label": "wps_native",
+      "render_engine": "wps",
+      "path": "D:\\AI project\\非线路运距计算\\samples\\expected\\driving_real\\WPS_样表_普通驾车距离结果_待验收.xlsm",
+      "captures": [
+        {
+          "label": "top",
+          "range": "M1:S12",
+          "output": "D:\\AI project\\非线路运距计算\\docs\\evidence\\visuals\\wps_native\\top.png",
+          "image": {
+            "size_bytes": 1272550,
+            "sha256": "A874839BC790FDBCEF50C4CBC5450FEC269A9A430E09BA519788BFE7BEC9B5BE",
+            "pixel_size": [
+              3995,
+              1390
+            ],
+            "rgba_pixel_sha256": "DC30355441921A02914C8CC3F970BC404E72D04FF1647CAF25F6C384FB671313"
+          }
+        },
+        {
+          "label": "conflict",
+          "range": "E35:S42",
+          "output": "D:\\AI project\\非线路运距计算\\docs\\evidence\\visuals\\wps_native\\conflict.png",
+          "image": {
+            "size_bytes": 797409,
+            "sha256": "297BDFBAA2E28B6DD5DE9F11C57CD4A5BE5B75F447B60775111A6D7F4D0FAC24",
+            "pixel_size": [
+              3995,
+              1390
+            ],
+            "rgba_pixel_sha256": "595FF6351A632CA237A816D59F97FC07D5C907CBBFC72D3B3E1B9323383BB100"
+          }
+        },
+        {
+          "label": "multi_destination",
+          "range": "E244:S250",
+          "output": "D:\\AI project\\非线路运距计算\\docs\\evidence\\visuals\\wps_native\\multi_destination.png",
+          "image": {
+            "size_bytes": 974896,
+            "sha256": "FAA19F78EEDAC9E3D25B38B432B3E982737A92ABD5E4EF36F01DA30A2D009AE4",
+            "pixel_size": [
+              3995,
+              1390
+            ],
+            "rgba_pixel_sha256": "FE6AA2D83227E0CCC0724720D743D0FEA0D5D13422067545663A80F93CFDE318"
+          }
+        }
+      ],
+      "session": {
+        "started_at": "2026-07-20T15:38:26+08:00",
+        "processes_before": [
+          {
+            "pid": 6284,
+            "name": "wps.exe",
+            "created_at": "2026-07-18T00:06:04+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wps.exe",
+            "windows": [
+              {
+                "hwnd": 134056,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131688,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131666,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          },
+          {
+            "pid": 6980,
+            "name": "wps.exe",
+            "created_at": "2026-07-18T00:06:15+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wps.exe",
+            "windows": [
+              {
+                "hwnd": 131640,
+                "title": "aspcenter",
+                "visible": false
+              },
+              {
+                "hwnd": 131858,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 197402,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 262594,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 524494,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131864,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328228,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 722728,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 657282,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132440,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          },
+          {
+            "pid": 23360,
+            "name": "wpscloudsvr.exe",
+            "created_at": "2026-07-20T01:46:18+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wpscloudsvr.exe",
+            "windows": [
+              {
+                "hwnd": 198086,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 198284,
+                "title": "qing",
+                "visible": false
+              },
+              {
+                "hwnd": 1183586,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 591866,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 855250,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263726,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 724134,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 460142,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 394602,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132810,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198236,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132710,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132718,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 8194700,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 397150,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1510790,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 984608,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263832,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328882,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 983216,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198234,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198316,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263584,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 330732,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263618,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132692,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198280,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132774,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1378096,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 656210,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 589856,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132680,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132676,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132668,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198136,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 721446,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263396,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 459966,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 524528,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 327954,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 656238,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 590624,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 459230,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 393660,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 327982,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328382,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 460006,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 394112,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263060,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132694,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 330902,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1050780,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          }
+        ],
+        "visible_windows_before": [],
+        "dispatch": "DispatchEx(KET.Application)",
+        "hwnd": 3214378,
+        "pid": 24976,
+        "version": "12.0",
+        "build": 26895.0,
+        "new_processes": [
+          {
+            "pid": 24976,
+            "name": "et.exe",
+            "created_at": "2026-07-20T15:38:26+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\et.exe",
+            "windows": [
+              {
+                "hwnd": 2690372,
+                "title": "DDE Server Window",
+                "visible": false
+              },
+              {
+                "hwnd": 5508228,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 3804108,
+                "title": "et",
+                "visible": false
+              },
+              {
+                "hwnd": 3542482,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 5574088,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 3147274,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 2885844,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1903662,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 6753328,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 3017626,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          },
+          {
+            "pid": 7756,
+            "name": "wps.exe",
+            "created_at": "2026-07-20T15:38:26+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wps.exe",
+            "windows": [
+              {
+                "hwnd": 15208126,
+                "title": "WPS Office",
+                "visible": false
+              },
+              {
+                "hwnd": 4787132,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 3279056,
+                "title": "wpsoffice",
+                "visible": false
+              },
+              {
+                "hwnd": 3149040,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 7540138,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 4000738,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 2559590,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 5836270,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 3673414,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 3409368,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 3476226,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 4851542,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 5507776,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          }
+        ],
+        "new_et_pids": [
+          24976
+        ],
+        "isolation_confirmed": true,
+        "security_settings": {
+          "AutomationSecurity": {
+            "requested": 3,
+            "accepted": true,
+            "readback": 3
+          },
+          "EnableEvents": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "DisplayAlerts": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "AskToUpdateLinks": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "ScreenUpdating": {
+            "requested": false,
+            "accepted": true,
+            "readback": false
+          },
+          "Calculation": {
+            "requested": -4135,
+            "accepted": true,
+            "readback": -4135
+          }
+        },
+        "quit_called": true,
+        "own_pids": [
+          7756,
+          24976
+        ],
+        "own_process_residual_pids": [],
+        "own_pid_residual": false,
+        "preexisting_processes_unchanged": true,
+        "protected_preexisting_pids": [
+          6284,
+          6980
+        ],
+        "cloud_service_pids_before": [
+          23360
+        ],
+        "cloud_service_pids_after": [
+          23360
+        ],
+        "cloud_service_processes_unchanged": true,
+        "visible_windows_after": [],
+        "preexisting_visible_windows_unchanged": true,
+        "processes_after": [
+          {
+            "pid": 6284,
+            "name": "wps.exe",
+            "created_at": "2026-07-18T00:06:04+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wps.exe",
+            "windows": [
+              {
+                "hwnd": 134056,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131688,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131666,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          },
+          {
+            "pid": 6980,
+            "name": "wps.exe",
+            "created_at": "2026-07-18T00:06:15+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wps.exe",
+            "windows": [
+              {
+                "hwnd": 131640,
+                "title": "aspcenter",
+                "visible": false
+              },
+              {
+                "hwnd": 131858,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 197402,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 262594,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 524494,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 131864,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328228,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 722728,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 657282,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132440,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          },
+          {
+            "pid": 23360,
+            "name": "wpscloudsvr.exe",
+            "created_at": "2026-07-20T01:46:18+08:00",
+            "exe": "C:\\Users\\黄泳铭\\AppData\\Local\\kingsoft\\WPS Office\\12.1.0.26895\\office6\\wpscloudsvr.exe",
+            "windows": [
+              {
+                "hwnd": 198086,
+                "title": "KAccountWnd_Kso_classname_qingSdk",
+                "visible": false
+              },
+              {
+                "hwnd": 198284,
+                "title": "qing",
+                "visible": false
+              },
+              {
+                "hwnd": 1183586,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 591866,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 855250,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263726,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 724134,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 460142,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 394602,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132810,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198236,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132710,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132718,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 8194700,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 397150,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1510790,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 984608,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263832,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328882,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 983216,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198234,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198316,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263584,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 330732,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263618,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132692,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198280,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132774,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1378096,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 656210,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 589856,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132680,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132676,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132668,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 198136,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 721446,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263396,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 459966,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 524528,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 327954,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 656238,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 590624,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 459230,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 393660,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 327982,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 328382,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 460006,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 394112,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 263060,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 132694,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 330902,
+                "title": "Default IME",
+                "visible": false
+              },
+              {
+                "hwnd": 1050780,
+                "title": "Default IME",
+                "visible": false
+              }
+            ]
+          }
+        ],
+        "finished_at": "2026-07-20T15:38:32+08:00"
+      }
+    }
+  }
+}

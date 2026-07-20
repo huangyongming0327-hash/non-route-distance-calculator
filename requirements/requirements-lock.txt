@@ -1,0 +1,27 @@
+# TASK-004R 普通驾车原型锁定依赖（Python 3.12 / Windows）
+cffi==2.1.0
+colorama==0.4.6
+colorclass==2.2.2
+cryptography==49.0.0
+easygui==0.98.3
+et_xmlfile==2.0.0
+iniconfig==2.3.0
+msoffcrypto-tool==6.0.0
+olefile==0.47
+oletools==0.60.2
+openpyxl==3.1.5
+packaging==26.2
+pcodedmp==1.2.6
+pillow==12.3.0
+pluggy==1.6.0
+psutil==7.2.2
+pycparser==3.0
+Pygments==2.20.0
+pyparsing==3.3.2
+PySide6==6.9.1
+PySide6_Addons==6.9.1
+PySide6_Essentials==6.9.1
+pytest==8.4.1
+pywin32==312
+shiboken6==6.9.1
+win_unicode_console==0.5

@@ -1,0 +1,8 @@
+# TASK-004R 普通驾车运行与验证依赖（Python 3.12 / Windows）
+# pywin32 同时用于 Office COM、Windows Credential Manager 和当前用户 DPAPI。
+PySide6==6.9.1
+openpyxl==3.1.5
+Pillow==12.3.0
+psutil==7.2.2
+pywin32==312
+pytest==8.4.1

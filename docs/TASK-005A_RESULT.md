@@ -1,0 +1,59 @@
+# TASK-005A 结果
+
+完成日期：2026-07-20  
+阶段状态：**已完成，按要求暂停，等待总指挥验收。**
+
+## 总结
+
+| 必答项 | 结果 |
+| --- | --- |
+| 唯一地址机制 | 已实现；30 个详细地址文本形成 31 个城市限定地址ID |
+| 可信地址库 | `confirmed_addresses` 已建，共 31 条 |
+| 当前确认状态 | 系统高可信 15、未确认 12、待进一步核实 4 |
+| 精度规则 | 门址别名、名称匹配、行政区冲突、坐标合理性和人工状态共同分级 |
+| GUI | 唯一地址表、10 项确认/纠错/筛选/导入导出操作已完成 |
+| 人工复用 | 同地址跨行、跨角色、跨工作簿复用；确认后不再重复地理编码或警告 |
+| 路线缓存 | 已引用两端地址ID和地理编码版本；地址/坐标变更会失效旧路线 |
+| 待确认清单 | 16 个唯一地址，可按地址ID导出/导入 |
+| 样表 Excel/WPS | 均通过；业务结果逐行一致 |
+| 自动测试 | 157 passed、2 skipped、0 failed；两项桌面 Office 测试由本轮实机验收覆盖 |
+| 原文件保护 | 原样表和 TASK-004R 两份文件哈希均不变 |
+
+## 样表结果
+
+| 状态 | Excel | WPS |
+| --- | ---: | ---: |
+| 查询成功—定位待复核 | 52 | 52 |
+| 缓存复用—普通驾车参考 | 12 | 12 |
+| 查询成功—地址冲突待确认 | 3 | 3 |
+| 地址风险过高—未计算 | 6 | 6 |
+| 多目的地待确认 | 1 | 1 |
+| 生成距离 | 67 | 67 |
+| 实际 HTTP | 0 | 0 |
+
+警告由 16 个唯一地址产生，用户不需要确认 74 行或 62 次。第 39/78 行共享一个冲突地址ID；第 272 行为另一个城市限定身份。三者尚未被冒充为“人工确认”，等待总指挥或业务人员在界面/待确认清单中确认。
+
+第 242、245、255、268、274、278 行因真实高风险端点暂不算路；第 248 行继续保持多目的地不计算。没有为了消黄而放宽这些风险。
+
+## 交付文件
+
+- `CURRENT_STATUS.md`
+- `docs/ADDRESS_PRECISION_ANALYSIS.md`
+- `docs/CONFIRMED_ADDRESS_DESIGN.md`
+- `docs/ADDRESS_CONFIRMATION_TEST_REPORT.md`
+- `docs/TASK-005A_RESULT.md`
+- `samples/expected/address_confirmation/Excel_样表_可信地址库结果_TASK-005A_待验收.xlsm`
+- `samples/expected/address_confirmation/WPS_样表_可信地址库结果_TASK-005A_待验收.xlsm`
+- `outputs/task005a/待确认地址清单_TASK-005A.xlsx`
+
+## 验收证据
+
+- `docs/evidence/TASK005A_ADDRESS_ANALYSIS.json`
+- `docs/evidence/TASK005A_EXCEL_VALIDATION.json`
+- `docs/evidence/TASK005A_WPS_VALIDATION.json`
+- `docs/evidence/TASK005A_FINAL_AUDIT.json`
+
+## 暂停边界
+
+TASK-005A 到此结束。本轮未继续最终 GUI 美化、EXE 打包、PDF 说明或正式 V1.0 发布。等待总指挥验收后再决定下一阶段。
+
