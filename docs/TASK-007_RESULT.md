@@ -4,7 +4,7 @@
 
 状态：完成
 
-V1.0 发布源码提交：本提交（完整 Hash 由 `v1.0` 标签与正式包 `VERSION.txt` 记录）
+V1.0 发布源码提交：`8aac1f78f6f4aeae7584ee4a7912678038a22448`
 
 正式标签：`v1.0`
 
@@ -23,6 +23,7 @@ V1.0 发布源码提交：本提交（完整 Hash 由 `v1.0` 标签与正式包 
 
 1. EXE：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0\非线路运距计算工具.exe`
 2. ZIP：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0_便携版.zip`
+   - SHA-256：`62CAC7C60A81EB7D466EEC6D6098838B00E95987520FB91F016EFA3AA308F9E9`
 3. 正式发布报告：`docs\FINAL_RELEASE_REPORT.md`
 4. 最终产品测试报告：`docs\FINAL_PRODUCT_TEST_REPORT.md`
 5. 打包报告：`docs\PACKAGING_REPORT.md`
