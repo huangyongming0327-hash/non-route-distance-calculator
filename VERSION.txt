@@ -1,0 +1,11 @@
+产品名称：非线路运距计算工具
+版本：V1.0 RC1
+构建日期：2026-07-21
+功能冻结 Git Commit Hash：62ad85b81e8f77cf9b2118463af25d08182be536
+Python版本：3.12.10
+PySide6版本：6.9.1
+高德接口版本：地理编码 v3；普通驾车路径规划 v5
+缓存版本：SQLite schema 5；迁移格式 1
+可信地址库版本：confirmed-address-v1
+
+说明：发布目录中的 VERSION.txt 由构建脚本生成，并记录实际打包提交的完整 Hash。

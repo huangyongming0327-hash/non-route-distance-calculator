@@ -1,5 +1,7 @@
-# CURRENT STATUS（docs 索引）
+# 当前状态
 
-TASK-005A-UI-FIX-001 已于 2026-07-20 完成。项目权威状态记录位于仓库根目录 `CURRENT_STATUS.md`。
+V1.0 RC1 已完成并等待用户实机验收。完整状态见项目根目录 `CURRENT_STATUS.md`，正式测试与打包证据见：
 
-当前结论：已建立 31 条城市限定唯一地址身份和可信地址库；15 条系统高可信，16 条仍需人工复核或纠正。GUI 已改为运距计算、地址确认、API与设置三页签，176 项离线测试通过。项目现已暂停，等待总指挥验收。
+- `FINAL_PRODUCT_TEST_REPORT.md`
+- `PACKAGING_REPORT.md`
+- `TASK-006_RESULT.md`
