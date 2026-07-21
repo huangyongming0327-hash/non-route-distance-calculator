@@ -14,6 +14,7 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication
 _pyside_import_ms = (time.perf_counter() - _pyside_import_started) * 1000
 
+from src import __version__
 from src.ui.main_window import MainWindow
 from src.runtime_paths import application_root, ensure_runtime_directories
 
@@ -63,6 +64,7 @@ def main() -> int:
     smoke_test = "--smoke-test" in sys.argv
     app = QApplication([arg for arg in sys.argv if arg != "--smoke-test"])
     app.setApplicationName("非线路运距计算工具 V1.0")
+    app.setApplicationVersion(__version__)
     app.setOrganizationName("内部工具")
     create_started = time.perf_counter()
     window = MainWindow(

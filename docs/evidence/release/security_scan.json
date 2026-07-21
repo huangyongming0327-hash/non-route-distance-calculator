@@ -1,0 +1,19 @@
+{
+    "scanned_at":  "2026-07-21T17:53:38.7035895+08:00",
+    "release_root":  "D:\\AI project\\非线路运距计算\\release\\非线路运距计算工具_V1.0",
+    "zip_path":  "D:\\AI project\\非线路运距计算\\release\\非线路运距计算工具_V1.0_便携版.zip",
+    "directory_file_count":  191,
+    "zip_file_count":  191,
+    "checks":  [
+                   "Key/token/password/secret/credential 赋值",
+                   ".env、SQLite、Excel 业务文件",
+                   "地址清单、业务日志、历史路线缓存",
+                   "中国大陆手机号码",
+                   "带 Key/sig/token/password 的真实请求 URL",
+                   "源码、.venv、非空运行目录和缺失发布项"
+               ],
+    "hits":  [
+
+             ],
+    "passed":  true
+}

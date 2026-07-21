@@ -112,7 +112,7 @@ def main() -> int:
     parser.add_argument(
         "--release-root",
         type=Path,
-        default=ROOT / "release" / "非线路运距计算工具_V1.0_RC1",
+        default=ROOT / "release" / "非线路运距计算工具_V1.0",
     )
     args = parser.parse_args()
     exe = args.release_root.resolve() / f"{PRODUCT}.exe"

@@ -4,7 +4,7 @@ Windows 本地桌面工具，使用高德地理编码和路径规划 2.0 普通�
 
 > 普通驾车参考距离，不代表货车实际可通行路线。本工具不考虑货车限高、限宽、限重、禁行及车牌限制。
 
-当前状态：**TASK-005A-UI-FIX-001 已完成并暂停等待总指挥验收；尚未正式发布 V1.0。**
+当前状态：**V1.0 已通过用户实际业务验收并正式定版。**
 
 ## 快速启动
 
@@ -60,19 +60,22 @@ Qt 6 使用 Windows 原生高 DPI 行为，支持 100%/125%/150% 缩放，不要
 
 - 目标行 74；唯一详细地址文本 30；城市限定地址ID 31。
 - 系统高可信 15；建议人工复核 12；不允许自动算路 4。
-- Excel/WPS 均为：67 条距离、52 定位待复核、12 缓存复用参考、3 城市冲突、6 风险过高、1 多目的地。
-- 业务结果逐行一致；两次 Office 运行均为 0 HTTP。
+- 用户实际处理 74 条非线路报价：73 条距离缓存复用、1 条多目的地警告。
+- Excel/WPS 输出均未发现异常，距离结果经用户人工检查无明显问题。
 - 原样表和 TASK-004R 两份结果文件哈希保持不变。
-- 自动化回归：176 passed、2 skipped、0 failed；其中新增 19 项 GUI 检查，Excel/WPS 实机保存保护沿用既有验收边界。
+- V1.0 回归：189 passed、4 skipped、0 failed；4 个默认跳过的 Office 实机项已单独启用并得到 4 passed。
 
 ## 验证命令
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe scripts\analyze_address_precision.py
-.\.venv\Scripts\python.exe scripts\run_task005a_acceptance.py excel
-.\.venv\Scripts\python.exe scripts\run_task005a_acceptance.py wps
-.\.venv\Scripts\python.exe scripts\final_task005a_audit.py
+$env:RUN_OFFICE_TESTS = "1"
+.\.venv\Scripts\python.exe -m pytest -q tests\test_office_integration.py tests\test_office_release.py
+.\scripts\build_release.ps1
+.\scripts\verify_portable_release.ps1
+.\.venv\Scripts\python.exe scripts\verify_frozen_office_worker.py
+.\scripts\finalize_release.ps1
+.\scripts\scan_release.ps1
 ```
 
 Excel/WPS 阶段会启动本工具专属隐藏 Office 进程并执行安全保存和重开验证。不要手工结束这些进程。
@@ -89,6 +92,12 @@ Excel/WPS 阶段会启动本工具专属隐藏 Office 进程并执行安全保�
 ## 当前交付
 
 - `CURRENT_STATUS.md`
+- `docs/FINAL_RELEASE_REPORT.md`
+- `docs/TASK-007_RESULT.md`
+- `docs/FINAL_PRODUCT_TEST_REPORT.md`
+- `docs/PACKAGING_REPORT.md`
+- `release/非线路运距计算工具_V1.0/`
+- `release/非线路运距计算工具_V1.0_便携版.zip`
 - `docs/ADDRESS_PRECISION_ANALYSIS.md`
 - `docs/CONFIRMED_ADDRESS_DESIGN.md`
 - `docs/ADDRESS_CONFIRMATION_TEST_REPORT.md`

@@ -1,58 +1,48 @@
 {
-  "tested_at": "2026-07-21T15:58:00+08:00",
-  "rc1_gate_passed": true,
-  "xlsx_business_workbook": {
-    "source_sha256": "52011587F8F12A87749087ABEA0ADCE2557874D1B268A55F348E86F8DFA7A951",
-    "source_unchanged": true,
-    "target_rows": 74,
-    "distance_rows": 73,
-    "multi_destination_rows": [248],
-    "actual_http_calls": 0,
-    "excel_wps_row_results_identical": true,
-    "rows_compared": 280,
-    "structural_checks": {
-      "valid_xlsm": true,
-      "non_target_result_columns_untouched": true,
-      "success_notice_preserved": true,
-      "original_formulas_preserved": true,
-      "formula_count": 245,
-      "dispimg_count": 5,
-      "jpeg_count": 2,
-      "images_preserved": true,
-      "auto_filter_preserved": true,
-      "hidden_rows_preserved": 206,
-      "original_conditional_formatting_preserved": true,
-      "tool_conditional_formatting_present": true,
-      "source_values_and_formulas_unchanged": true
-    },
-    "office_process_checks": {
-      "excel_own_process_released": true,
-      "excel_preexisting_processes_unchanged": true,
-      "wps_own_process_released": true,
-      "wps_preexisting_processes_unchanged": true,
-      "wps_preexisting_windows_unchanged": true,
-      "automation_security_disabled": true,
-      "events_disabled": true
-    }
+  "tested_at": "2026-07-21T17:49:00+08:00",
+  "v1_0_gate_passed": true,
+  "offline_pytest": {
+    "result": "189 passed, 4 skipped",
+    "duration_seconds": 89.88,
+    "real_amap_requests": 0,
+    "skipped_reason": "4 个真实 Office 测试默认关闭，已在下一阶段单独启用并通过。"
   },
-  "xlsm_macro_fixture": {
-    "pytest_result": "4 passed",
-    "excel": true,
-    "wps": true,
+  "office_pytest": {
+    "result": "4 passed",
+    "duration_seconds": 43.41,
+    "excel_registered": true,
+    "wps_registered": true,
     "valid_xlsm": true,
     "vba_sources_preserved": true,
     "macro_execution_disabled": true,
-    "source_unchanged": true
+    "events_disabled": true,
+    "own_processes_released": true,
+    "preexisting_processes_unchanged": true,
+    "wps_preexisting_windows_unchanged": true
+  },
+  "xlsx_and_xlsm_compatibility": {
+    "source_sha256": "52011587F8F12A87749087ABEA0ADCE2557874D1B268A55F348E86F8DFA7A951",
+    "source_unchanged": true,
+    "excel_xlsx_to_xlsm": true,
+    "excel_xlsm_resave": true,
+    "wps_xlsx_to_xlsm": true,
+    "wps_xlsm_resave": true,
+    "comparison_groups": 4,
+    "critical_failures": 0,
+    "note": "Excel 存在已披露的非关键 Office 样式规范化；原值、公式、筛选、图片和目标/非目标行语义保持。"
+  },
+  "user_business_acceptance": {
+    "exe_started": true,
+    "excel_output_ok": true,
+    "wps_output_ok": true,
+    "target_rows": 74,
+    "distance_cache_reused_rows": 73,
+    "multi_destination_warning_rows": 1,
+    "manual_distance_review": "无明显问题"
   },
   "frozen_exe_office_worker": {
     "excel": true,
     "wps": true,
     "evidence": "docs/evidence/release/frozen_office_worker.json"
-  },
-  "legacy_task005a_script": {
-    "exit_code": 1,
-    "rc1_blocker": false,
-    "reason": "脚本仍硬编码旧快照的 67 个距离和 3 个未确认城市冲突；当前用户已验收可信地址库已确认这些地址，实际为 73 个缓存距离、0 个冲突。除旧快照断言外，结构和安全检查均通过。",
-    "historical_evidence_preserved": true
   }
 }

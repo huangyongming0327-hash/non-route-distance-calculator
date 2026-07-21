@@ -25,6 +25,7 @@ Desktop.ini
 /cache/
 /logs/
 /outputs/
+/备份/
 *.sqlite
 *.sqlite3
 *.sqlite-*

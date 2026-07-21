@@ -8,10 +8,10 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $ProductName = "非线路运距计算工具"
-$ReleaseName = "非线路运距计算工具_V1.0_RC1"
+$ReleaseName = "非线路运距计算工具_V1.0"
 $ReleaseParent = Join-Path $ProjectRoot "release"
 $ReleaseRoot = Join-Path $ReleaseParent $ReleaseName
-$BuildRoot = Join-Path $ProjectRoot "build\v1.0-rc1"
+$BuildRoot = Join-Path $ProjectRoot "build\v1.0"
 $DistRoot = Join-Path $BuildRoot "dist"
 $WorkRoot = Join-Path $BuildRoot "work"
 $SpecRoot = Join-Path $BuildRoot "spec"
@@ -100,7 +100,7 @@ $PythonVersion = (& $Python -c "import platform; print(platform.python_version()
 $PySideVersion = (& $Python -c "import PySide6; print(PySide6.__version__)").Trim()
 $VersionLines = @(
     "产品名称：非线路运距计算工具",
-    "版本：V1.0 RC1",
+    "版本：V1.0",
     "构建日期：$BuildDate",
     "Git Commit Hash：$GitHash",
     "Python版本：$PythonVersion",

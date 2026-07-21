@@ -43,7 +43,7 @@ def _page_decorations(canvas, document) -> None:
     canvas.line(18 * mm, 282 * mm, 192 * mm, 282 * mm)
     canvas.setFont(regular, 8)
     canvas.setFillColor(colors.HexColor("#52606D"))
-    canvas.drawString(18 * mm, 286 * mm, "非线路运距计算工具 V1.0 RC1")
+    canvas.drawString(18 * mm, 286 * mm, "非线路运距计算工具 V1.0")
     canvas.drawRightString(192 * mm, 12 * mm, f"第 {document.page} 页")
     canvas.setFillColor(colors.HexColor("#7A5200"))
     canvas.drawString(18 * mm, 12 * mm, "普通驾车参考距离，不代表货车实际可通行路线")
@@ -68,7 +68,7 @@ def build() -> Path:
         leftMargin=18 * mm,
         topMargin=20 * mm,
         bottomMargin=20 * mm,
-        title="非线路运距计算工具 V1.0 RC1 使用说明",
+        title="非线路运距计算工具 V1.0 使用说明",
         author="非线路运距计算工具项目",
         subject="Windows 便携版用户手册",
     )
@@ -116,7 +116,7 @@ def build() -> Path:
                 story.append(PageBreak())
             story.append(Spacer(1, 28 * mm))
             story.append(Paragraph(_paragraph_text(line[2:]), title))
-            story.append(Paragraph("Windows 便携版 · 发布候选版", ParagraphStyle(
+            story.append(Paragraph("Windows onedir 便携正式版", ParagraphStyle(
                 "Subtitle", parent=body, fontName=regular, fontSize=11,
                 alignment=TA_CENTER, textColor=colors.HexColor("#52606D"),
             )))

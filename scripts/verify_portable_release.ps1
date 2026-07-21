@@ -8,7 +8,7 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 if (-not $ReleaseRoot) {
-    $ReleaseRoot = Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0_RC1"
+    $ReleaseRoot = Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0"
 }
 $ReleaseRoot = [System.IO.Path]::GetFullPath($ReleaseRoot)
 $ProductName = "非线路运距计算工具"
@@ -16,10 +16,10 @@ $VerificationRoot = Join-Path $ProjectRoot "temp\portable_verification"
 $EvidenceRoot = Join-Path $ProjectRoot "docs\evidence\release"
 
 $expectedRelease = [System.IO.Path]::GetFullPath(
-    (Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0_RC1")
+    (Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0")
 )
 if ($ReleaseRoot -ne $expectedRelease) {
-    throw "仅允许验证当前项目的 RC1 发布目录：$expectedRelease"
+    throw "仅允许验证当前项目的 V1.0 发布目录：$expectedRelease"
 }
 if (-not (Test-Path -LiteralPath (Join-Path $ReleaseRoot "$ProductName.exe"))) {
     throw "发布 EXE 不存在：$ReleaseRoot"
