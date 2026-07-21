@@ -109,11 +109,11 @@ def verify_job(app: Any, job: dict[str, Any]) -> dict[str, Any]:
             del workbook
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("job_file")
     parser.add_argument("response_file")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     job = json.loads(Path(args.job_file).read_text(encoding="utf-8"))
     response: dict[str, Any] = {"ok": False, "job": job.get("operation"), "engine": job.get("engine")}
     try:
@@ -136,6 +136,7 @@ def main() -> None:
     Path(args.response_file).write_text(json.dumps(response, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     if not response["ok"]:
         raise SystemExit(2)
+    return 0
 
 
 if __name__ == "__main__":

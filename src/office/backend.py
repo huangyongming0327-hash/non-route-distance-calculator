@@ -36,9 +36,30 @@ class OfficeBackend:
         response_path = self.runtime_dir / f"office_response_{token}.json"
         payload["engine"] = self.engine.value
         job_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        if getattr(sys, "frozen", False):
+            command = [
+                sys.executable,
+                "--office-worker",
+                str(job_path),
+                str(response_path),
+            ]
+            working_directory = self.runtime_dir
+        else:
+            command = [
+                sys.executable,
+                "-m",
+                "src.office.worker",
+                str(job_path),
+                str(response_path),
+            ]
+            working_directory = Path(__file__).resolve().parents[2]
         completed = subprocess.run(
-            [sys.executable, "-m", "src.office.worker", str(job_path), str(response_path)],
-            cwd=Path(__file__).resolve().parents[2], capture_output=True, text=True, timeout=timeout, shell=False,
+            command,
+            cwd=working_directory,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            shell=False,
         )
         if not response_path.exists():
             raise RuntimeError(f"Office 辅助进程未返回审计结果（退出码 {completed.returncode}）：{completed.stderr[-1000:]}")

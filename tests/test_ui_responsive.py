@@ -10,6 +10,7 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtCore import QPoint, Qt
+from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QSizePolicy
 
 from src.amap.http_client import StandardLibraryTransport
@@ -107,10 +108,38 @@ def test_api_settings_page_has_required_controls(app: QApplication, ui) -> None:
         window.test_key_button,
         window.key_state_label,
         window.driving_status_label,
+        window.office_status_label,
         window.dev_checkbox,
         window.clear_cache_button,
+        window.export_address_book_button,
+        window.import_address_book_button,
+        window.export_driving_cache_button,
+        window.import_driving_cache_button,
     )
     assert all(widget is not None for widget in required)
+    assert not window.developer_group.isChecked()
+    assert window.dev_checkbox.isHidden()
+
+
+def test_release_startup_does_not_scan_or_load_sample(app: QApplication, project_root: Path) -> None:
+    with patch.object(
+        MainWindow,
+        "_default_sample",
+        side_effect=AssertionError("正式启动不得扫描 samples"),
+    ) as default_sample:
+        window = MainWindow(project_root, defer_initial_load=True)
+        window.show()
+        QTest.qWait(180)
+        app.processEvents()
+        try:
+            assert default_sample.call_count == 0
+            assert window.file_edit.text() == ""
+            assert window.output_edit.text() == str(project_root / "outputs")
+            assert not window.force_refresh_checkbox.isChecked()
+            assert window.mode_combo.currentData() == "driving_real"
+        finally:
+            window.close()
+            app.processEvents()
 
 
 def test_single_address_buttons_disabled_without_selection(app: QApplication, ui) -> None:

@@ -38,7 +38,7 @@ class PrototypeRunner:
     def __init__(self, project_root: str | Path) -> None:
         self.root = Path(project_root).resolve()
         self.cache_path = self.root / "cache" / "task_003b.sqlite"
-        self.runtime_root = self.root / "samples" / "working" / "prototype"
+        self.runtime_root = self.root / "temp" / "prototype"
         self.log_root = self.root / "logs" / "prototype"
         self.controller = TaskController()
         self._repository: CacheRepository | None = None
@@ -114,7 +114,7 @@ class PrototypeRunner:
             if not key_store.get_key():
                 raise RuntimeError("API Key 未配置：请在本机原型的“API 设置”中输入，不要在聊天中发送 Key。")
             cache_path = self.root / "cache" / "driving_real.sqlite"
-            runtime_root = self.root / "samples" / "working" / "driving_real"
+            runtime_root = self.root / "temp" / "driving_real"
             log_root = self.root / "logs" / "driving_real"
         else:
             key_store = None

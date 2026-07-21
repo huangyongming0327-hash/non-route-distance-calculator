@@ -40,6 +40,12 @@ from src.amap.driving_clients import DRIVING_MODE, test_connection
 from src.amap.errors import AmapApiError
 from src.amap.http_client import AmapHttpClient, RealApiAuditLogger
 from src.cache.sqlite_cache import CacheRepository
+from src.cache.transfer import (
+    export_driving_cache,
+    export_trusted_addresses,
+    import_driving_cache,
+    import_trusted_addresses,
+)
 from src.domain.models import FieldMapping, OfficeEngine, TaskMode, WorkbookSelection
 from src.office.backend import engine_installed
 from src.security.key_store import SecureKeyStore
@@ -53,7 +59,7 @@ FIELD_LABELS = {
     "origin_address": "始发详细地址",
     "destination_city": "目的城市",
     "destination_address": "目的详细地址",
-    "vehicle": "车型",
+    "vehicle": "车型（可选，不参与普通驾车距离计算）",
 }
 
 
@@ -113,6 +119,8 @@ class MainWindow(QMainWindow):
         self.startup_thread: QThread | None = None
         self.startup_worker: WorkbookInspectWorker | None = None
         self.startup_workbook_started = 0.0
+        self.pending_inspection_stage = "读取工作簿"
+        self.pending_refresh_addresses = True
         self.close_when_startup_done = False
         self.info: WorkbookInfo | None = None
         self.last_output: Path | None = None
@@ -120,6 +128,7 @@ class MainWindow(QMainWindow):
         self.mapping_boxes: dict[str, QComboBox] = {}
         self.address_records = []
         self.address_usage = {}
+        self.output_manually_selected = False
         self.key_store = SecureKeyStore(self.root)
         self.setWindowTitle("非线路运距计算工具 V1.0 — 高德普通驾车距离版")
         self.resize(1200, 820)
@@ -161,7 +170,9 @@ class MainWindow(QMainWindow):
     @Slot()
     def _initialize_office_after_show(self) -> None:
         self._measure_startup("检测Excel/WPS", self._refresh_office_engines)
-        QTimer.singleShot(0, self._initialize_workbook_after_show)
+        self._record_startup_timing("等待用户选择工作簿", 0.0)
+        self.summary_label.setText("启动完成。请选择 Excel 文件，程序将在选择后读取工作表和字段。")
+        QTimer.singleShot(0, lambda: self._refresh_address_table(record_startup=True))
 
     @Slot()
     def _initialize_workbook_after_show(self) -> None:
@@ -171,9 +182,30 @@ class MainWindow(QMainWindow):
             QTimer.singleShot(0, lambda: self._refresh_address_table(record_startup=True))
             return
         self.file_edit.setText(str(sample))
+        self._start_workbook_inspection(
+            sample,
+            stage="加载默认工作簿",
+            refresh_addresses=False,
+        )
+
+    def _start_workbook_inspection(
+        self,
+        path: Path,
+        *,
+        stage: str = "读取用户工作簿",
+        refresh_addresses: bool = True,
+    ) -> None:
+        if self.startup_thread and self.startup_thread.isRunning():
+            QMessageBox.information(self, "正在读取", "上一个工作簿仍在读取，请稍候。")
+            return
+        self.pending_inspection_stage = stage
+        self.pending_refresh_addresses = refresh_addresses
         self.startup_workbook_started = time.perf_counter()
+        self.summary_label.setText("正在读取工作簿和识别字段，请稍候…")
+        self.select_button.setEnabled(False)
+        self.detect_button.setEnabled(False)
         self.startup_thread = QThread(self)
-        self.startup_worker = WorkbookInspectWorker(sample)
+        self.startup_worker = WorkbookInspectWorker(path)
         self.startup_worker.moveToThread(self.startup_thread)
         self.startup_thread.started.connect(self.startup_worker.run)
         self.startup_worker.finished.connect(self._startup_workbook_loaded)
@@ -186,20 +218,22 @@ class MainWindow(QMainWindow):
     @Slot(object)
     def _startup_workbook_loaded(self, info: WorkbookInfo) -> None:
         self._record_startup_timing(
-            "加载默认工作簿",
+            self.pending_inspection_stage,
             (time.perf_counter() - self.startup_workbook_started) * 1000,
         )
-        self._apply_workbook_info(info, refresh_addresses=False)
-        QTimer.singleShot(0, lambda: self._refresh_address_table(record_startup=True))
+        self._apply_workbook_info(
+            info,
+            refresh_addresses=self.pending_refresh_addresses,
+        )
 
     @Slot(str)
     def _startup_workbook_failed(self, message: str) -> None:
         self._record_startup_timing(
-            "加载默认工作簿",
+            self.pending_inspection_stage,
             (time.perf_counter() - self.startup_workbook_started) * 1000,
         )
-        self.summary_label.setText(f"默认工作簿加载失败：{message}")
-        QTimer.singleShot(0, lambda: self._refresh_address_table(record_startup=True))
+        self.summary_label.setText(f"工作簿读取失败：{message}")
+        QMessageBox.warning(self, "无法读取工作簿", message)
 
     @Slot()
     def _startup_thread_finished(self) -> None:
@@ -209,6 +243,8 @@ class MainWindow(QMainWindow):
             self.startup_thread.deleteLater()
         self.startup_worker = None
         self.startup_thread = None
+        self.select_button.setEnabled(True)
+        self.detect_button.setEnabled(True)
         if self.close_when_startup_done:
             self.close()
 
@@ -265,7 +301,7 @@ class MainWindow(QMainWindow):
         file_grid = QGridLayout(file_group)
         self.file_edit = QLineEdit()
         self.select_button = QPushButton("选择 Excel 文件")
-        self.output_edit = QLineEdit(str(self.root / "samples" / "working" / "prototype_outputs"))
+        self.output_edit = QLineEdit(str(self.root / "outputs"))
         self.output_button = QPushButton("选择输出目录")
         self.sheet_combo = QComboBox()
         self.header_spin = QSpinBox()
@@ -399,6 +435,14 @@ class MainWindow(QMainWindow):
         )
         for index, button in enumerate(toolbar_buttons):
             address_tools.addWidget(button, index // 4, index % 4)
+        self.refresh_addresses_button.setToolTip("重新读取当前可信地址库和所选工作簿中的唯一地址。")
+        self.reparse_address_button.setToolTip("使用当前查询地址重新获取高德坐标。")
+        self.use_original_address_button.setToolTip("将查询地址恢复为原 Excel 地址，不修改原 Excel。")
+        self.use_formatted_address_button.setToolTip("将查询地址改为高德返回的标准地址。")
+        self.save_corrected_address_button.setToolTip("保存修正后的查询地址；不会修改原 Excel。")
+        self.confirm_address_button.setToolTip("人工认可当前标准地址和坐标。")
+        self.invalid_address_button.setToolTip("阻止该地址自动计算。")
+        self.batch_confirm_button.setToolTip("仅确认系统判定为高可信的地址。")
         for column in range(4):
             address_tools.setColumnStretch(column, 1)
         address_layout.addLayout(address_tools)
@@ -471,8 +515,10 @@ class MainWindow(QMainWindow):
         self.test_key_button = QPushButton("测试连接（最多 2 个成功请求）")
         self.key_state_label = QLabel("已存 Key：等待读取本机安全存储")
         self.driving_status_label = QLabel("普通驾车接口：尚未测试")
+        self.office_status_label = QLabel("Excel/WPS：等待检测")
         self.key_state_label.setWordWrap(True)
         self.driving_status_label.setWordWrap(True)
+        self.office_status_label.setWordWrap(True)
         api_layout.setColumnStretch(1, 1)
         api_layout.addWidget(QLabel("Key"), 0, 0)
         api_layout.addWidget(self.key_edit, 0, 1, 1, 3)
@@ -483,23 +529,42 @@ class MainWindow(QMainWindow):
         api_layout.addWidget(self.key_state_label, 2, 1, 1, 3)
         api_layout.addWidget(QLabel("接口状态"), 3, 0)
         api_layout.addWidget(self.driving_status_label, 3, 1, 1, 3)
+        api_layout.addWidget(QLabel("办公软件"), 4, 0)
+        api_layout.addWidget(self.office_status_label, 4, 1, 1, 3)
         page_layout.addWidget(api_group)
 
-        advanced_group = QGroupBox("开发/测试与低频设置")
-        advanced_layout = QVBoxLayout(advanced_group)
-        self.dev_checkbox = QCheckBox("开发/测试设置：在运行模式中显示模拟测试模式")
+        data_group = QGroupBox("数据备份与缓存")
+        data_layout = QGridLayout(data_group)
         self.clear_cache_button = QPushButton("清除普通驾车路线缓存")
-        self.clear_cache_button.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        advanced_note = QLabel(
-            "清理仅作用于 driving_real 普通驾车路线缓存；"
-            "地理编码缓存、可信地址库和历史任务保留。"
+        self.export_address_book_button = QPushButton("导出可信地址库")
+        self.import_address_book_button = QPushButton("导入可信地址库")
+        self.export_driving_cache_button = QPushButton("导出普通驾车缓存")
+        self.import_driving_cache_button = QPushButton("导入普通驾车缓存")
+        for index, button in enumerate((
+            self.export_address_book_button,
+            self.import_address_book_button,
+            self.export_driving_cache_button,
+            self.import_driving_cache_button,
+        )):
+            data_layout.addWidget(button, index // 2, index % 2)
+        data_layout.addWidget(self.clear_cache_button, 2, 0, 1, 2)
+        data_note = QLabel(
+            "备份文件可能包含业务地址，请妥善保管。清理路线缓存不会删除可信地址库。"
         )
-        advanced_note.setWordWrap(True)
-        advanced_note.setStyleSheet("QLabel { color:#444; background:#f4f4f4; padding:6px; }")
-        advanced_layout.addWidget(self.dev_checkbox)
-        advanced_layout.addWidget(self.clear_cache_button, 0, Qt.AlignmentFlag.AlignLeft)
-        advanced_layout.addWidget(advanced_note)
-        page_layout.addWidget(advanced_group)
+        data_note.setWordWrap(True)
+        data_note.setStyleSheet("QLabel { color:#444; background:#f4f4f4; padding:6px; }")
+        data_layout.addWidget(data_note, 3, 0, 1, 2)
+        page_layout.addWidget(data_group)
+
+        self.developer_group = QGroupBox("开发模式（默认收起）")
+        self.developer_group.setCheckable(True)
+        self.developer_group.setChecked(False)
+        developer_layout = QVBoxLayout(self.developer_group)
+        self.dev_checkbox = QCheckBox("在运行模式中显示模拟测试模式")
+        self.dev_checkbox.setVisible(False)
+        developer_layout.addWidget(self.dev_checkbox)
+        self.developer_group.toggled.connect(self.dev_checkbox.setVisible)
+        page_layout.addWidget(self.developer_group)
         page_layout.addStretch(1)
 
         self.api_scroll = self._make_scroll_page(content)
@@ -524,6 +589,10 @@ class MainWindow(QMainWindow):
         self.delete_key_button.clicked.connect(self._delete_key)
         self.test_key_button.clicked.connect(self._test_key)
         self.clear_cache_button.clicked.connect(self._clear_driving_cache)
+        self.export_address_book_button.clicked.connect(self._export_address_book)
+        self.import_address_book_button.clicked.connect(self._import_address_book)
+        self.export_driving_cache_button.clicked.connect(self._export_driving_cache)
+        self.import_driving_cache_button.clicked.connect(self._import_driving_cache)
         self.dev_checkbox.toggled.connect(self._toggle_dev_mode)
         self.force_refresh_checkbox.toggled.connect(lambda: self._refresh_summary())
         self.refresh_addresses_button.clicked.connect(
@@ -549,17 +618,20 @@ class MainWindow(QMainWindow):
         selected = self.engine_combo.currentData()
         self.engine_combo.blockSignals(True)
         self.engine_combo.clear()
+        statuses = []
         for engine, label in (
             (OfficeEngine.EXCEL, "Microsoft Excel"),
             (OfficeEngine.WPS, "WPS 表格（实验性隔离）"),
         ):
             installed = engine_installed(engine)
+            statuses.append(f"{label}：{'已安装' if installed else '未检测到'}")
             self.engine_combo.addItem(
                 f"{label}｜{'已安装' if installed else '未检测到'}", engine.value
             )
         restored = self.engine_combo.findData(selected)
         self.engine_combo.setCurrentIndex(max(0, restored))
         self.engine_combo.blockSignals(False)
+        self.office_status_label.setText("｜".join(statuses))
 
     def _refresh_key_state(self) -> None:
         state = self.key_store.load()
@@ -636,6 +708,77 @@ class MainWindow(QMainWindow):
             removed = repository.clear_route_cache(mode=DRIVING_MODE)
         QMessageBox.information(self, "缓存已清除", f"已清除 {removed} 条普通驾车路线缓存。")
 
+    def _cache_repository(self) -> CacheRepository:
+        return CacheRepository(self.root / "cache" / "driving_real.sqlite")
+
+    @Slot()
+    def _export_address_book(self) -> None:
+        default = self.root / "outputs" / "可信地址库备份.json"
+        path, _ = QFileDialog.getSaveFileName(
+            self, "导出可信地址库", str(default), "JSON 备份 (*.json)"
+        )
+        if not path:
+            return
+        try:
+            with self._cache_repository() as repository:
+                exported = export_trusted_addresses(repository, path)
+            QMessageBox.information(self, "导出完成", str(exported))
+        except Exception as exc:
+            QMessageBox.warning(self, "导出失败", str(exc))
+
+    @Slot()
+    def _import_address_book(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(
+            self, "导入可信地址库", str(self.root / "outputs"), "JSON 备份 (*.json)"
+        )
+        if not path:
+            return
+        try:
+            with self._cache_repository() as repository:
+                summary = import_trusted_addresses(repository, path)
+            self._refresh_address_table()
+            QMessageBox.information(
+                self,
+                "导入完成",
+                f"导入 {summary.imported} 条，跳过 {summary.skipped} 条。",
+            )
+        except Exception as exc:
+            QMessageBox.warning(self, "导入失败", str(exc))
+
+    @Slot()
+    def _export_driving_cache(self) -> None:
+        default = self.root / "outputs" / "普通驾车缓存备份.json"
+        path, _ = QFileDialog.getSaveFileName(
+            self, "导出普通驾车缓存", str(default), "JSON 备份 (*.json)"
+        )
+        if not path:
+            return
+        try:
+            with self._cache_repository() as repository:
+                exported = export_driving_cache(repository, path)
+            QMessageBox.information(self, "导出完成", str(exported))
+        except Exception as exc:
+            QMessageBox.warning(self, "导出失败", str(exc))
+
+    @Slot()
+    def _import_driving_cache(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(
+            self, "导入普通驾车缓存", str(self.root / "outputs"), "JSON 备份 (*.json)"
+        )
+        if not path:
+            return
+        try:
+            with self._cache_repository() as repository:
+                summary = import_driving_cache(repository, path)
+            QMessageBox.information(
+                self,
+                "导入完成",
+                f"地理编码 {summary.geocodes} 条，路线 {summary.routes} 条，"
+                f"跳过 {summary.skipped} 条。",
+            )
+        except Exception as exc:
+            QMessageBox.warning(self, "导入失败", str(exc))
+
     @Slot(bool)
     def _toggle_dev_mode(self, visible: bool) -> None:
         mock_index = self.mode_combo.findData(TaskMode.MOCK.value)
@@ -690,13 +833,16 @@ class MainWindow(QMainWindow):
         )
         if path:
             self.file_edit.setText(path)
-            self._inspect_current()
+            if not self.output_manually_selected:
+                self.output_edit.setText(str(Path(path).resolve().parent))
+            self._start_workbook_inspection(Path(path))
 
     @Slot()
     def _select_output(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "选择输出目录", self.output_edit.text())
         if path:
             self.output_edit.setText(path)
+            self.output_manually_selected = True
 
     @Slot()
     def _sheet_changed(self) -> None:
@@ -734,7 +880,7 @@ class MainWindow(QMainWindow):
             box.blockSignals(True)
             box.clear()
             if key == "vehicle":
-                box.addItem("（可选，不参与查询）", None)
+                box.addItem("（可选，不参与普通驾车距离计算）", None)
             for col, descriptor in enumerate(self.info.descriptors, start=1):
                 box.addItem(descriptor, col)
             recommended = getattr(self.info.recommended_mapping, key)
@@ -1042,7 +1188,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def _export_pending_addresses(self) -> None:
         path, _ = QFileDialog.getSaveFileName(
-            self, "导出待确认清单", str(self.root / "samples" / "expected" / "address_confirmation" / "待确认地址清单.xlsx"),
+            self, "导出待确认清单", str(self.root / "outputs" / "待确认地址清单.xlsx"),
             "Excel 工作簿 (*.xlsx)",
         )
         if not path:
@@ -1055,7 +1201,9 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _import_address_results(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(self, "导入确认结果", str(self.root), "Excel 工作簿 (*.xlsx)")
+        path, _ = QFileDialog.getOpenFileName(
+            self, "导入确认结果", str(self.root / "outputs"), "Excel 工作簿 (*.xlsx)"
+        )
         if not path:
             return
         repository = None
@@ -1176,12 +1324,13 @@ class MainWindow(QMainWindow):
     def _finished(self, summary) -> None:
         self.last_output = Path(summary.output_path) if summary.output_path else None
         title = "任务已停止" if summary.stopped else "处理完成"
+        state_text = "已安全停止" if summary.stopped else "已完成"
         QMessageBox.information(
             self,
             title,
-            f"状态：{summary.state}\n目标行：{summary.target_total}\n已处理：{summary.processed}\n"
-            f"生成距离：{summary.distance_count}\n警告：{summary.warning_count}\n缓存复用：{summary.cache_hits}\n"
-            f"输出：{summary.output_path or '无'}",
+            f"状态：{state_text}\n需要处理：{summary.target_total} 行\n已处理：{summary.processed} 行\n"
+            f"已生成距离：{summary.distance_count} 行\n需要留意：{summary.warning_count} 行\n"
+            f"复用已有结果：{summary.cache_hits} 行\n结果文件：{summary.output_path or '未生成'}",
         )
 
     @Slot(str)

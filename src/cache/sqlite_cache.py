@@ -226,6 +226,46 @@ class CacheRepository:
                 ),
             )
 
+    def list_geocode_entries(self, *, mode: str) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self._connection.execute(
+                """SELECT cleaned_address_hash, payload_json
+                   FROM geocode_cache WHERE mode=? ORDER BY cache_key""",
+                (mode,),
+            ).fetchall()
+        return [
+            {
+                "cleaned_address_hash": str(row["cleaned_address_hash"]),
+                "result": json.loads(row["payload_json"]),
+            }
+            for row in rows
+        ]
+
+    def list_route_entries(self, *, mode: str) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self._connection.execute(
+                """SELECT origin_key,destination_key,vehicle_size,payload_json,
+                          COALESCE(origin_address_id, '') AS origin_address_id,
+                          COALESCE(destination_address_id, '') AS destination_address_id,
+                          COALESCE(origin_geocode_version, '') AS origin_geocode_version,
+                          COALESCE(destination_geocode_version, '') AS destination_geocode_version
+                   FROM route_cache WHERE mode=? ORDER BY cache_key""",
+                (mode,),
+            ).fetchall()
+        return [
+            {
+                "origin_key": str(row["origin_key"]),
+                "destination_key": str(row["destination_key"]),
+                "vehicle_size": row["vehicle_size"],
+                "origin_address_id": str(row["origin_address_id"]),
+                "destination_address_id": str(row["destination_address_id"]),
+                "origin_geocode_version": str(row["origin_geocode_version"]),
+                "destination_geocode_version": str(row["destination_geocode_version"]),
+                "result": json.loads(row["payload_json"]),
+            }
+            for row in rows
+        ]
+
     def invalidate_routes_for_address(self, address_id: str) -> int:
         with self._lock, self._connection:
             cursor = self._connection.execute(
