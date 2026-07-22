@@ -35,5 +35,5 @@ relative_difference = absolute_difference / max(paths.distance, sum, 1)
 
 1. 在本机界面安全保存 Key 并确认专业货车权限。
 2. 对三条线路执行真实 `nosteps=0` 调用。
-3. 用户按 `MANUAL_ROUTE_CHECKLIST.md` 填写高德地图货车模式参考值。
+3. 原人工路线清单因包含真实业务地址，已在首次 GitHub 推送前从全部 Git 历史清除；后续复核只允许使用明确标注为合成的数据。
 4. 复核三条差异后才可把本机批量门中的 `distance_unit_validated` 设为真。

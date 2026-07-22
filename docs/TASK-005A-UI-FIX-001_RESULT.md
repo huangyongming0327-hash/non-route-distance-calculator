@@ -57,12 +57,8 @@
 
 ## 截图证据
 
-- `docs/evidence/ui_fix/1366x768_calculation.png`
-- `docs/evidence/ui_fix/1366x768_address_confirmation.png`
-- `docs/evidence/ui_fix/1366x768_api_settings.png`
-- `docs/evidence/ui_fix/1920x1080_calculation.png`
-- `docs/evidence/ui_fix/1920x1080_address_confirmation.png`
-- `docs/evidence/ui_fix/1920x1080_api_settings.png`
+- 原 1366×768 与 1920×1080 UI 截图包含业务地址、工作簿路径或凭据指纹，已在首次 GitHub 推送前从全部 Git 历史清除。
+- 本报告保留布局和功能结论，不保留原始业务截图。
 
 ## 已知问题和后续建议
 

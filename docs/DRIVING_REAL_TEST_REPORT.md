@@ -29,7 +29,7 @@
 
 实测高德对每条返回 3 条候选路径；程序固定使用 `paths[0]`。因此不能把 `alternative_route=1` 解读为服务端必然只返回 1 条。
 
-证据：`docs/evidence/TASK004R_SMALL_ROUTES.json`。
+原始路线证据因包含业务地址和坐标，已在首次 GitHub 推送前从全部 Git 历史清除；本报告只保留脱敏结论。
 
 ## 3. 74 行样表
 
@@ -74,7 +74,7 @@
 - Excel：`898F890C8AEA057319F8352A5D0931250BB2A3725A189809EC76436E585E0327`
 - WPS：`ECF7DD03B55822D72BB02D7D117245B8B774C7673998DFD088B161DB88F26861`
 
-证据：`docs/evidence/TASK004R_EXCEL_VALIDATION.json`、`TASK004R_WPS_VALIDATION.json`、`TASK004R_VISUAL_CAPTURE.json` 和 `TASK004R_FINAL_AUDIT.json`。
+原始 Excel/WPS 验收 JSON 因包含业务工作簿路径、哈希或行级元数据，已在首次 GitHub 推送前从全部 Git 历史清除；无敏感内容的视觉捕获摘要继续保留。
 
 ## 5. 自动测试与限制
 

@@ -4,7 +4,7 @@ Windows 本地桌面工具，使用高德地理编码和路径规划 2.0 普通�
 
 > 普通驾车参考距离，不代表货车实际可通行路线。本工具不考虑货车限高、限宽、限重、禁行及车牌限制。
 
-当前状态：**V1.0 已通过用户实机验收并正式发布。**
+当前状态：**V1.0 已通过用户实机验收；首次 GitHub 推送前已执行历史安全清理。**
 
 ## 快速启动
 
@@ -50,7 +50,7 @@ Qt 6 使用 Windows 原生高 DPI 行为，支持 100%/125%/150% 缩放，不要
 5. 点击“确认定位正确”后，同地址以后直接复用；也可导出 Excel 待确认清单，线下填写后按地址ID导回。
 6. 选择 Excel/WPS 和普通驾车正式计算，确认风险后开始。程序只写工作副本和新结果文件，不覆盖输入。
 
-完整步骤见 `docs/USER_GUIDE_DRAFT.md`。
+完整步骤见 `docs/USER_GUIDE.md`。源码仅用于开发、测试和审计；普通使用者后续应从 GitHub Releases 下载 V1.0 便携版 ZIP，不应从源码目录直接运行生产任务。
 
 ## 地址精度状态
 
@@ -60,15 +60,12 @@ Qt 6 使用 Windows 原生高 DPI 行为，支持 100%/125%/150% 缩放，不要
 - 地址风险过高—未计算：仅到区县、行政区错位、坐标异常或无法解析，距离留空并标红。
 - 地址无效 / 多目的地待确认：阻止自动算路。
 
-详细规则和真实样表证据见 `docs/ADDRESS_PRECISION_ANALYSIS.md`。
+详细规则见 `docs/CONFIRMED_ADDRESS_DESIGN.md`；仓库只保留合成测试或不含完整地址、电话的脱敏统计。
 
-## 样表 TASK-005A 结果
+## V1.0 验收摘要
 
-- 目标行 74；唯一详细地址文本 30；城市限定地址ID 31。
-- 系统高可信 15；建议人工复核 12；不允许自动算路 4。
-- 用户实际处理 74 条非线路报价：73 条距离缓存复用、1 条多目的地警告。
+- 地址确认、距离缓存、多目的地和城市冲突流程已完成脱敏验收。
 - Excel/WPS 输出均未发现异常，距离结果经用户人工检查无明显问题。
-- 原样表和 TASK-004R 两份结果文件哈希保持不变。
 - V1.0 离线回归：200 passed、4 skipped、0 failed；显式启用的真实 Office 测试：4 passed。
 
 ## 验证命令
@@ -89,6 +86,7 @@ Excel/WPS 阶段会启动本工具专属隐藏 Office 进程并执行安全保�
 ## 安全边界
 
 - Key 优先保存到 Windows Credential Manager，回退到当前用户 DPAPI；所有 HTTP 审计删除 Key/sig 并脱敏电话号码。
+- 禁止向 Git、GitHub Issue、聊天或文档上传高德 Key、Token、凭据、业务 Excel、客户/仓库地址、电话、可信地址库、路线缓存或运距结果。
 - 输入文件先指纹校验再复制；禁止覆盖输入或写入 `samples/input`。
 - 原 Excel 地址只读；修正查询地址只保存到本地 SQLite。
 - 禁止宏、事件、更新链接和刷新；拒绝 XLM 宏表。
@@ -106,15 +104,12 @@ Excel/WPS 阶段会启动本工具专属隐藏 Office 进程并执行安全保�
 - `release/非线路运距计算工具_V1.0_便携版.zip`
 - `docs/PERFORMANCE_OPTIMIZATION_REPORT.md`
 - `docs/TASK-007A_RESULT.md`
-- `docs/ADDRESS_PRECISION_ANALYSIS.md`
 - `docs/CONFIRMED_ADDRESS_DESIGN.md`
 - `docs/ADDRESS_CONFIRMATION_TEST_REPORT.md`
 - `docs/TASK-005A_RESULT.md`
 - `docs/UI_RESPONSIVE_FIX_REPORT.md`
 - `docs/TASK-005A-UI-FIX-001_RESULT.md`
-- `docs/evidence/ui_fix/`
-- `samples/expected/address_confirmation/Excel_样表_可信地址库结果_TASK-005A_待验收.xlsm`
-- `samples/expected/address_confirmation/WPS_样表_可信地址库结果_TASK-005A_待验收.xlsm`
-- `outputs/task005a/待确认地址清单_TASK-005A.xlsx`
+
+正式 EXE 与便携版 ZIP 不进入 Git 历史；GitHub Release 创建前会另行验证并上传发布资产。
 
 专业货车方案因最低采购成本过高已终止；历史文档保留并标记，不代表当前实现。

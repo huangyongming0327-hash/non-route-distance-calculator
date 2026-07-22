@@ -53,7 +53,7 @@ D:\AI project\非线路运距计算\docs\VEHICLE_PARAMETER_VALIDATION.md
 D:\AI project\非线路运距计算\docs\REAL_API_TEST_REPORT.md
 D:\AI project\非线路运距计算\docs\TASK-004_RESULT.md
 D:\AI project\非线路运距计算\docs\TASK-004_WAITING_FOR_KEY.md
-D:\AI project\非线路运距计算\docs\MANUAL_ROUTE_CHECKLIST.md
+[首次 GitHub 推送前已清除：原人工路线清单包含真实业务地址]
 D:\AI project\非线路运距计算\docs\PROTOTYPE_DESIGN.md
 D:\AI project\非线路运距计算\src\__init__.py
 D:\AI project\非线路运距计算\src\domain\models.py
@@ -90,8 +90,8 @@ D:\AI project\非线路运距计算\tests\test_ui_smoke.py
 
 ```text
 D:\AI project\非线路运距计算\docs\evidence\TASK004R_CONNECTION.json
-D:\AI project\非线路运距计算\docs\evidence\TASK004R_SMALL_ROUTES.json
-D:\AI project\非线路运距计算\docs\evidence\TASK004R_EXCEL_VALIDATION.json
+[首次 GitHub 推送前已清除：原路线 JSON 包含业务地址和坐标]
+[首次 GitHub 推送前已清除：原 Excel 验收 JSON 包含业务工作簿元数据]
 D:\AI project\非线路运距计算\docs\evidence\TASK004R_WPS_VALIDATION.json
 D:\AI project\非线路运距计算\docs\evidence\TASK004R_VISUAL_CAPTURE.json
 D:\AI project\非线路运距计算\docs\evidence\TASK004R_FINAL_AUDIT.json

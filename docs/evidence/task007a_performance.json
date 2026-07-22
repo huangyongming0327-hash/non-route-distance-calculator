@@ -1,5 +1,5 @@
 {
-  "measured_at": "2026-07-22T23:24:16+0800",
+  "measured_at": "2026-07-23T00:55:00+0800",
   "environment": {
     "python": "3.12.10",
     "platform": "win32",
@@ -11,66 +11,66 @@
       "runs": [
         {
           "cache_hit": false,
-          "elapsed_ms": 49.5,
+          "elapsed_ms": 58.77,
           "header_row": 1,
           "max_row": 281,
           "stage_timings": [
             {
               "stage": "读取工作表列表",
-              "elapsed_ms": 13.2,
+              "elapsed_ms": 14.02,
               "status": "completed"
             },
             {
               "stage": "检测缓存查找",
-              "elapsed_ms": 0.18,
+              "elapsed_ms": 0.12,
               "status": "completed"
             },
             {
               "stage": "自动识别表头",
-              "elapsed_ms": 4.21,
+              "elapsed_ms": 4.73,
               "status": "completed"
             },
             {
               "stage": "生成字段候选",
-              "elapsed_ms": 0.31,
+              "elapsed_ms": 0.32,
               "status": "completed"
             },
             {
               "stage": "读取必要城市列",
-              "elapsed_ms": 14.57,
+              "elapsed_ms": 17.94,
               "status": "completed"
             },
             {
               "stage": "定位最后使用列",
-              "elapsed_ms": 12.89,
+              "elapsed_ms": 16.0,
               "status": "completed"
             },
             {
               "stage": "生成前10行预览",
-              "elapsed_ms": 0.0,
+              "elapsed_ms": 0.01,
               "status": "completed"
             },
             {
               "stage": "写入检测缓存",
-              "elapsed_ms": 3.3,
+              "elapsed_ms": 5.05,
               "status": "completed"
             }
           ]
         },
         {
           "cache_hit": true,
-          "elapsed_ms": 12.99,
+          "elapsed_ms": 17.85,
           "header_row": 1,
           "max_row": 281,
           "stage_timings": [
             {
               "stage": "读取工作表列表",
-              "elapsed_ms": 11.1,
+              "elapsed_ms": 15.87,
               "status": "completed"
             },
             {
               "stage": "检测缓存查找",
-              "elapsed_ms": 1.29,
+              "elapsed_ms": 1.47,
               "status": "completed"
             }
           ]
@@ -78,75 +78,75 @@
       ]
     },
     "synthetic_2000_rows_header_4": {
-      "file_size": 55457,
+      "file_size": 55458,
       "runs": [
         {
           "cache_hit": false,
-          "elapsed_ms": 176.76,
+          "elapsed_ms": 230.1,
           "header_row": 4,
           "max_row": 2004,
           "stage_timings": [
             {
               "stage": "读取工作表列表",
-              "elapsed_ms": 44.46,
+              "elapsed_ms": 57.06,
               "status": "completed"
             },
             {
               "stage": "定位最后使用列",
-              "elapsed_ms": 42.91,
+              "elapsed_ms": 56.35,
               "status": "completed"
             },
             {
               "stage": "检测缓存查找",
-              "elapsed_ms": 0.16,
+              "elapsed_ms": 0.1,
               "status": "completed"
             },
             {
               "stage": "自动识别表头",
-              "elapsed_ms": 2.95,
+              "elapsed_ms": 4.01,
               "status": "completed"
             },
             {
               "stage": "生成字段候选",
-              "elapsed_ms": 0.14,
+              "elapsed_ms": 0.12,
               "status": "completed"
             },
             {
               "stage": "读取必要城市列",
-              "elapsed_ms": 83.12,
+              "elapsed_ms": 107.73,
               "status": "completed"
             },
             {
               "stage": "生成前10行预览",
-              "elapsed_ms": 0.0,
+              "elapsed_ms": 0.01,
               "status": "completed"
             },
             {
               "stage": "写入检测缓存",
-              "elapsed_ms": 2.29,
+              "elapsed_ms": 3.83,
               "status": "completed"
             }
           ]
         },
         {
           "cache_hit": true,
-          "elapsed_ms": 73.08,
+          "elapsed_ms": 87.62,
           "header_row": 4,
           "max_row": 2004,
           "stage_timings": [
             {
               "stage": "读取工作表列表",
-              "elapsed_ms": 20.84,
+              "elapsed_ms": 25.96,
               "status": "completed"
             },
             {
               "stage": "定位最后使用列",
-              "elapsed_ms": 42.29,
+              "elapsed_ms": 49.78,
               "status": "completed"
             },
             {
               "stage": "检测缓存查找",
-              "elapsed_ms": 9.38,
+              "elapsed_ms": 11.24,
               "status": "completed"
             }
           ]
@@ -154,32 +154,32 @@
       ]
     },
     "synthetic_10000_rows_header_15": {
-      "file_size": 254769,
+      "file_size": 254770,
       "runs": [
         {
           "cache_hit": false,
-          "elapsed_ms": 758.12,
+          "elapsed_ms": 887.12,
           "header_row": 15,
           "max_row": 10015,
           "stage_timings": [
             {
               "stage": "读取工作表列表",
-              "elapsed_ms": 125.55,
+              "elapsed_ms": 147.52,
               "status": "completed"
             },
             {
               "stage": "定位最后使用列",
-              "elapsed_ms": 233.68,
+              "elapsed_ms": 277.4,
               "status": "completed"
             },
             {
               "stage": "检测缓存查找",
-              "elapsed_ms": 2.58,
+              "elapsed_ms": 0.11,
               "status": "completed"
             },
             {
               "stage": "自动识别表头",
-              "elapsed_ms": 2.64,
+              "elapsed_ms": 2.33,
               "status": "completed"
             },
             {
@@ -189,40 +189,40 @@
             },
             {
               "stage": "读取必要城市列",
-              "elapsed_ms": 388.82,
+              "elapsed_ms": 454.31,
               "status": "completed"
             },
             {
               "stage": "生成前10行预览",
-              "elapsed_ms": 0.0,
+              "elapsed_ms": 0.01,
               "status": "completed"
             },
             {
               "stage": "写入检测缓存",
-              "elapsed_ms": 4.09,
+              "elapsed_ms": 4.52,
               "status": "completed"
             }
           ]
         },
         {
           "cache_hit": true,
-          "elapsed_ms": 358.47,
+          "elapsed_ms": 484.44,
           "header_row": 15,
           "max_row": 10015,
           "stage_timings": [
             {
               "stage": "读取工作表列表",
-              "elapsed_ms": 115.38,
+              "elapsed_ms": 137.86,
               "status": "completed"
             },
             {
               "stage": "定位最后使用列",
-              "elapsed_ms": 231.71,
+              "elapsed_ms": 330.91,
               "status": "completed"
             },
             {
               "stage": "检测缓存查找",
-              "elapsed_ms": 10.76,
+              "elapsed_ms": 15.03,
               "status": "completed"
             }
           ]
@@ -233,12 +233,12 @@
   "output_directories": {
     "empty": {
       "existing_files": 0,
-      "elapsed_ms": 5.52,
+      "elapsed_ms": 6.29,
       "status": "writable"
     },
     "contains_1000_files": {
       "existing_files": 1000,
-      "elapsed_ms": 2.19,
+      "elapsed_ms": 2.94,
       "status": "writable"
     }
   },

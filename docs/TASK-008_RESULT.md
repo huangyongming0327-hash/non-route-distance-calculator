@@ -6,10 +6,10 @@
 
 ## Git 结果
 
-- TASK-007A 提交：`8de836634b8ffb26b18c764b31526ce07f808bfb`
-- V1.0 正式提交：`95877adb3748d034b158766a55b0e1f78fc9afc4`
-- 注释标签：`v1.0` → `95877adb3748d034b158766a55b0e1f78fc9afc4`
-- 标签说明：`非线路运距计算工具V1.0正式版`
+- TASK-007A 清理后提交：`a35b7a7e0b8958758e07f689d30ccb6f2448311a`
+- V1.0 正式提交：`v1.0^{commit}`（以清理后注释标签为准）
+- 注释标签：`v1.0` → 清理后的正式发布提交
+- 标签说明：`非线路运距计算工具V1.0正式版（GitHub首次发布安全清理版）`
 - 旧 `v1.0` 标签目标以 `v1.0-pre-task008` 保留；历史基线、历史分支、目录、ZIP 和报告均未删除。
 - 未配置远程仓库，未推送。
 
@@ -36,8 +36,10 @@ Office 完整比较确认 245 个公式、5 个 DISPIMG、2 个媒体资源、�
 
 - EXE：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0\非线路运距计算工具.exe`
 - ZIP：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0_便携版.zip`
-- EXE SHA-256：`99819A5E75212E06B4043AB7EAB8147289EA8060F2F9D5F756E7C2FF189E0949`
-- ZIP SHA-256：`02814C1A8AF222424123F519BFF51CA8EEE0E368CE4E73E80D194B265FF5ABA3`
+- EXE SHA-256：待从清理后的正式提交重新构建并记录。
+- ZIP SHA-256：待从清理后的正式提交重新构建并记录。
+
+首次 GitHub 推送前已执行历史安全清理；清理前提交号和包哈希不再作为发布依据。
 - 正式发布报告：`docs/FINAL_RELEASE_REPORT.md`
 - 测试报告：`docs/FINAL_PRODUCT_TEST_REPORT.md`
 - 打包报告：`docs/PACKAGING_REPORT.md`

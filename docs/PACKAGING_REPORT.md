@@ -1,8 +1,10 @@
 # V1.0 便携版打包报告
 
 打包日期：2026-07-22
-TASK-007A 提交：`8de836634b8ffb26b18c764b31526ce07f808bfb`
-V1.0 发布源码提交：`95877adb3748d034b158766a55b0e1f78fc9afc4`
+TASK-007A 清理后提交：`a35b7a7e0b8958758e07f689d30ccb6f2448311a`
+V1.0 发布源码提交：`v1.0^{commit}`（以清理后注释标签为准）
+
+> 清理前包哈希已失效；清理后的 EXE 和 ZIP 以 `docs/TASK-GITHUB-HISTORY-CLEAN_RESULT.md` 为准。
 
 ## 1. 打包方案
 

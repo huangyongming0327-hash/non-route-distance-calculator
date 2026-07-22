@@ -1,7 +1,8 @@
 {
   "tested_at": "2026-07-22T23:29:23+08:00",
-  "task007a_commit": "8de836634b8ffb26b18c764b31526ce07f808bfb",
-  "release_commit": "95877adb3748d034b158766a55b0e1f78fc9afc4",
+  "task007a_commit": "a35b7a7e0b8958758e07f689d30ccb6f2448311a",
+  "release_commit": "v1.0^{commit}",
+  "history_sanitized_before_first_github_push": true,
   "real_amap_calls": 0,
   "offline_pytest": {
     "passed": 200,

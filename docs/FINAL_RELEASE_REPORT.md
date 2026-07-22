@@ -3,9 +3,11 @@
 发布日期：2026-07-22
 正式分支：`release/v1.0`
 
-TASK-007A 提交：`8de836634b8ffb26b18c764b31526ce07f808bfb`
-V1.0 正式发布提交：`95877adb3748d034b158766a55b0e1f78fc9afc4`
-注释标签：`v1.0`（非线路运距计算工具V1.0正式版）
+TASK-007A 清理后提交：`a35b7a7e0b8958758e07f689d30ccb6f2448311a`
+V1.0 正式发布提交：`v1.0^{commit}`（以清理后注释标签为准）
+注释标签：`v1.0`（非线路运距计算工具V1.0正式版（GitHub首次发布安全清理版））
+
+> 首次 GitHub 推送前已执行历史安全清理。清理前提交号和旧包哈希已失效；精确的新提交号与包哈希以 `docs/TASK-GITHUB-HISTORY-CLEAN_RESULT.md` 为准。
 
 ## 1. 发布结论
 
@@ -58,8 +60,8 @@ TASK-007A 专项测试：`11 passed in 5.78s`。
 
 - EXE：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0\非线路运距计算工具.exe`
 - ZIP：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0_便携版.zip`
-- EXE SHA-256：`99819A5E75212E06B4043AB7EAB8147289EA8060F2F9D5F756E7C2FF189E0949`
-- ZIP SHA-256：`02814C1A8AF222424123F519BFF51CA8EEE0E368CE4E73E80D194B265FF5ABA3`
+- EXE SHA-256：待从清理后的正式提交重新构建并记录。
+- ZIP SHA-256：待从清理后的正式提交重新构建并记录。
 - ZIP 大小：55,209,288 字节。
 - 构建：PyInstaller 6.21.0，`onedir + windowed`；PE Subsystem=2，无黑色控制台窗口。
 - 目录、另一中文路径、带空格路径启动均通过；主窗口最慢 1.530 秒出现，三处均不含 `src` 或 `.venv`。

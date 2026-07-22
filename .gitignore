@@ -1,6 +1,7 @@
 # Python
 .venv/
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *.pyd
 *.egg-info/
@@ -20,6 +21,7 @@ Desktop.ini
 
 # Project-local runtime data and build outputs
 /build/
+/dist/
 /release/
 /temp/
 /cache/
@@ -50,14 +52,34 @@ Desktop.ini
 !tests/fixtures/*.xlsm
 
 # Local secrets and machine-specific configuration
-/config/local*.json
-/config/*key*
-/config/*token*
-/config/*password*
-/config/*secret*
-/config/*credential*
+/config/*
+!/config/*.example.*
+!/config/*.schema.*
+!/config/*.template.*
 .env
 .env.*
+credentials*
+secrets*
 *.credential
 *.key
 *.pem
+
+# Business address data, caches, and sensitive test evidence
+*_address*.json
+*_cache*.json
+*address_confirmation*.json
+*confirmed_address*.json
+/docs/evidence/TASK005A_ADDRESS_ANALYSIS.json
+/docs/evidence/TASK004R_SMALL_ROUTES.json
+/docs/evidence/TASK004R_EXCEL_VALIDATION.json
+/docs/evidence/TASK004R_FINAL_AUDIT.json
+/docs/evidence/TASK004R_WPS_VALIDATION.json
+/docs/evidence/TASK005A_EXCEL_VALIDATION.json
+/docs/evidence/TASK005A_FINAL_AUDIT.json
+/docs/evidence/TASK005A_WPS_VALIDATION.json
+/docs/evidence/ui_fix/*.png
+/docs/evidence/visuals/
+
+# Binary release artifacts
+*.exe
+*.zip

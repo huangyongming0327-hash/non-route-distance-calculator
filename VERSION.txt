@@ -1,8 +1,8 @@
 产品名称：非线路运距计算工具
 版本：V1.0
 定版日期：2026-07-22
-TASK-007A Git Commit Hash：8de836634b8ffb26b18c764b31526ce07f808bfb
-V1.0 正式发布 Git Commit Hash：95877adb3748d034b158766a55b0e1f78fc9afc4
+TASK-007A 清理后 Git Commit Hash：a35b7a7e0b8958758e07f689d30ccb6f2448311a
+V1.0 正式发布 Git Commit：v1.0^{commit}（以清理后注释标签为准）
 Python版本：3.12.10
 PySide6版本：6.9.1
 高德接口版本：地理编码 v3；普通驾车路径规划 v5
@@ -11,3 +11,4 @@ PySide6版本：6.9.1
 工作簿检测算法版本：task-007a-ooxml-v1
 
 说明：正式发布目录中的 VERSION.txt 由构建脚本生成，并记录实际打包提交的完整 Git Hash 与 clean 工作区状态。
+历史安全说明：首次 GitHub 推送前已清除业务地址、电话、坐标、业务截图和工作簿验收元数据；清理前提交号已失效。

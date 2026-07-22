@@ -38,7 +38,7 @@
 ## 交付文件
 
 - `CURRENT_STATUS.md`
-- `docs/ADDRESS_PRECISION_ANALYSIS.md`
+- 原地址精度分析含完整业务地址，已在首次 GitHub 推送前从全部 Git 历史清除；本报告仅保留脱敏结论。
 - `docs/CONFIRMED_ADDRESS_DESIGN.md`
 - `docs/ADDRESS_CONFIRMATION_TEST_REPORT.md`
 - `docs/TASK-005A_RESULT.md`
@@ -48,12 +48,10 @@
 
 ## 验收证据
 
-- `docs/evidence/TASK005A_ADDRESS_ANALYSIS.json`
-- `docs/evidence/TASK005A_EXCEL_VALIDATION.json`
+- 原地址分析与 Excel/WPS 验收 JSON 含业务地址或工作簿元数据，已在首次 GitHub 推送前从全部 Git 历史清除。
 - `docs/evidence/TASK005A_WPS_VALIDATION.json`
 - `docs/evidence/TASK005A_FINAL_AUDIT.json`
 
 ## 暂停边界
 
 TASK-005A 到此结束。本轮未继续最终 GUI 美化、EXE 打包、PDF 说明或正式 V1.0 发布。等待总指挥验收后再决定下一阶段。
-
