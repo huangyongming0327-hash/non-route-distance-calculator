@@ -8,18 +8,18 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 if (-not $ReleaseRoot) {
-    $ReleaseRoot = Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0_RC2"
+    $ReleaseRoot = Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0"
 }
 $ReleaseRoot = [System.IO.Path]::GetFullPath($ReleaseRoot)
 $ProductName = "非线路运距计算工具"
 $VerificationRoot = Join-Path $ProjectRoot "temp\portable_verification"
-$EvidenceRoot = Join-Path $ProjectRoot "docs\evidence\task007a"
+$EvidenceRoot = Join-Path $ProjectRoot "docs\evidence\task008"
 
 $expectedRelease = [System.IO.Path]::GetFullPath(
-    (Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0_RC2")
+    (Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0")
 )
 if ($ReleaseRoot -ne $expectedRelease) {
-    throw "仅允许验证当前项目的 V1.0 RC2 发布目录：$expectedRelease"
+    throw "仅允许验证当前项目的 V1.0 正式发布目录：$expectedRelease"
 }
 if (-not (Test-Path -LiteralPath (Join-Path $ReleaseRoot "$ProductName.exe"))) {
     throw "发布 EXE 不存在：$ReleaseRoot"
@@ -82,7 +82,7 @@ $Evidence = [ordered]@{
     maximum_process_elapsed_seconds = ($Results | Measure-Object -Property elapsed_seconds -Maximum).Maximum
     results = $Results
 }
-$EvidencePath = Join-Path $EvidenceRoot "portable_verification_rc2.json"
+$EvidencePath = Join-Path $EvidenceRoot "portable_verification_v1.json"
 [System.IO.File]::WriteAllText(
     $EvidencePath,
     ($Evidence | ConvertTo-Json -Depth 8),

@@ -1,10 +1,10 @@
-# 非线路运距计算工具 V1.0 RC2
+# 非线路运距计算工具 V1.0
 
 Windows 本地桌面工具，使用高德地理编码和路径规划 2.0 普通驾车接口，为 Excel/WPS 中精确等于“非线路报价”的行生成参考公路距离，并通过本地可信地址库实现“唯一地址一次确认、以后自动复用”。
 
 > 普通驾车参考距离，不代表货车实际可通行路线。本工具不考虑货车限高、限宽、限重、禁行及车牌限制。
 
-当前状态：**V1.0 RC2 性能优化候选版已完成自动回归，等待用户再次实机验收；不是新的正式 V1.0 发布。**
+当前状态：**V1.0 已通过用户实机验收并正式发布。**
 
 ## 快速启动
 
@@ -16,6 +16,12 @@ cd "D:\AI project\非线路运距计算"
 ```
 
 也可双击 `scripts/run_prototype.bat`。脚本不需要管理员权限，会自动进入项目根目录并检查 `.venv`；仅在启动失败时暂停显示错误。
+
+## 便携版部署
+
+正式便携版不需要安装 Python。把整个 ZIP 复制到目标电脑后先“全部解压”，不能在压缩包内部运行，也不能只复制 EXE 或删除 `_internal`；可以给 EXE 创建桌面快捷方式。目标电脑至少安装 Microsoft Excel 或 WPS 表格中的一种。
+
+每台新电脑需要由当前 Windows 用户重新输入并保存高德 Key。可信地址库和缓存通常只需首次导入一次，关闭程序或电脑不会丢失；重新解压到全新目录或删除 `cache` 后才需重新导入。未导入缓存时程序会按需重新调用 API，并在本机逐步积累。可信地址库和缓存 JSON 可能包含业务地址，必须内部受控保存。
 
 ## 三页签界面
 
@@ -63,7 +69,7 @@ Qt 6 使用 Windows 原生高 DPI 行为，支持 100%/125%/150% 缩放，不要
 - 用户实际处理 74 条非线路报价：73 条距离缓存复用、1 条多目的地警告。
 - Excel/WPS 输出均未发现异常，距离结果经用户人工检查无明显问题。
 - 原样表和 TASK-004R 两份结果文件哈希保持不变。
-- V1.0 RC2 离线回归：200 passed、4 skipped、0 failed；跳过项为需显式启用的真实 Office 测试。
+- V1.0 离线回归不低于 200 passed、4 skipped、0 failed；跳过项已通过显式启用的真实 Office 测试另行验证。
 
 ## 验证命令
 
@@ -93,11 +99,11 @@ Excel/WPS 阶段会启动本工具专属隐藏 Office 进程并执行安全保�
 
 - `CURRENT_STATUS.md`
 - `docs/FINAL_RELEASE_REPORT.md`
-- `docs/TASK-007_RESULT.md`
+- `docs/TASK-008_RESULT.md`
 - `docs/FINAL_PRODUCT_TEST_REPORT.md`
 - `docs/PACKAGING_REPORT.md`
-- `release/非线路运距计算工具_V1.0_RC2/`
-- `release/非线路运距计算工具_V1.0_RC2_便携版.zip`
+- `release/非线路运距计算工具_V1.0/`
+- `release/非线路运距计算工具_V1.0_便携版.zip`
 - `docs/PERFORMANCE_OPTIMIZATION_REPORT.md`
 - `docs/TASK-007A_RESULT.md`
 - `docs/ADDRESS_PRECISION_ANALYSIS.md`

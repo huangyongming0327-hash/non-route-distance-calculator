@@ -8,10 +8,10 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $ProductName = "非线路运距计算工具"
-$ReleaseName = "非线路运距计算工具_V1.0_RC2"
+$ReleaseName = "非线路运距计算工具_V1.0"
 $ReleaseParent = Join-Path $ProjectRoot "release"
 $ReleaseRoot = Join-Path $ReleaseParent $ReleaseName
-$BuildRoot = Join-Path $ProjectRoot "build\v1.0_rc2"
+$BuildRoot = Join-Path $ProjectRoot "build\v1.0"
 $DistRoot = Join-Path $BuildRoot "dist"
 $WorkRoot = Join-Path $BuildRoot "work"
 $SpecRoot = Join-Path $BuildRoot "spec"
@@ -96,15 +96,18 @@ foreach ($document in $RequiredDocuments) {
 
 $GitHash = (git -C $ProjectRoot rev-parse HEAD).Trim()
 $GitStatus = @(git -C $ProjectRoot status --porcelain)
-$WorkingTreeState = if ($GitStatus.Count -eq 0) { "clean" } else { "含未提交的 TASK-007A 候选版修改" }
+if ($GitStatus.Count -ne 0) {
+    throw "正式构建要求 Git 工作区干净，请先提交或移除未提交修改。"
+}
+$WorkingTreeState = "clean"
 $BuildDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss zzz"
 $PythonVersion = (& $Python -c "import platform; print(platform.python_version())").Trim()
 $PySideVersion = (& $Python -c "import PySide6; print(PySide6.__version__)").Trim()
 $VersionLines = @(
     "产品名称：非线路运距计算工具",
-    "版本：V1.0 RC2",
+    "版本：V1.0",
     "构建日期：$BuildDate",
-    "基线 Git Commit Hash：$GitHash",
+    "Git Commit Hash：$GitHash",
     "构建工作区状态：$WorkingTreeState",
     "Python版本：$PythonVersion",
     "PySide6版本：$PySideVersion",

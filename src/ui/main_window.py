@@ -355,7 +355,7 @@ class MainWindow(QMainWindow):
         self.address_usage = {}
         self.output_manually_selected = False
         self.key_store = SecureKeyStore(self.root)
-        self.setWindowTitle("非线路运距计算工具 V1.0 RC2 — 高德普通驾车距离版")
+        self.setWindowTitle("非线路运距计算工具 V1.0 — 高德普通驾车距离版")
         self.resize(1200, 820)
         self.setMinimumSize(780, 560)
         self._build_ui()

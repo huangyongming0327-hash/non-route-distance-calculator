@@ -112,7 +112,7 @@ def main() -> int:
     parser.add_argument(
         "--release-root",
         type=Path,
-        default=ROOT / "release" / "非线路运距计算工具_V1.0_RC2",
+        default=ROOT / "release" / "非线路运距计算工具_V1.0",
     )
     args = parser.parse_args()
     exe = args.release_root.resolve() / f"{PRODUCT}.exe"
@@ -128,7 +128,7 @@ def main() -> int:
         "results": results,
         "passed": all(item["passed"] for item in results),
     }
-    evidence = ROOT / "docs" / "evidence" / "task007a" / "frozen_office_worker_rc2.json"
+    evidence = ROOT / "docs" / "evidence" / "task008" / "frozen_office_worker_v1.json"
     evidence.parent.mkdir(parents=True, exist_ok=True)
     evidence.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
