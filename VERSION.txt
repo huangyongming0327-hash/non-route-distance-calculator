@@ -2,7 +2,7 @@
 版本：V1.0
 定版日期：2026-07-22
 TASK-007A 清理后 Git Commit Hash：a35b7a7e0b8958758e07f689d30ccb6f2448311a
-V1.0 正式发布 Git Commit：v1.0^{commit}（以清理后注释标签为准）
+V1.0 正式发布 Git Commit：4075063ff8c0425715bbedbf70b6ffc10dd4ca9e
 Python版本：3.12.10
 PySide6版本：6.9.1
 高德接口版本：地理编码 v3；普通驾车路径规划 v5
