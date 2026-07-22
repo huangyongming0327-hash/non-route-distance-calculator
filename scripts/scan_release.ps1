@@ -10,21 +10,21 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $ExpectedRelease = [System.IO.Path]::GetFullPath(
-    (Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0")
+    (Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0_RC2")
 )
 $ExpectedZip = [System.IO.Path]::GetFullPath(
-    (Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0_便携版.zip")
+    (Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0_RC2_便携版.zip")
 )
 if (-not $ReleaseRoot) { $ReleaseRoot = $ExpectedRelease }
 if (-not $ZipPath) { $ZipPath = $ExpectedZip }
 if (-not $EvidencePath) {
-    $EvidencePath = Join-Path $ProjectRoot "docs\evidence\release\security_scan.json"
+    $EvidencePath = Join-Path $ProjectRoot "docs\evidence\task007a\security_scan_rc2.json"
 }
 $ReleaseRoot = [System.IO.Path]::GetFullPath($ReleaseRoot)
 $ZipPath = [System.IO.Path]::GetFullPath($ZipPath)
 $EvidencePath = [System.IO.Path]::GetFullPath($EvidencePath)
 if ($ReleaseRoot -ne $ExpectedRelease -or $ZipPath -ne $ExpectedZip) {
-    throw "只允许扫描当前项目的正式 V1.0 发布目录和 ZIP。"
+    throw "只允许扫描当前项目的 V1.0 RC2 发布目录和 ZIP。"
 }
 if (-not (Test-Path -LiteralPath $ReleaseRoot -PathType Container)) {
     throw "正式发布目录不存在：$ReleaseRoot"

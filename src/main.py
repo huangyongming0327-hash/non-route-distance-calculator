@@ -63,7 +63,7 @@ def main() -> int:
     )
     smoke_test = "--smoke-test" in sys.argv
     app = QApplication([arg for arg in sys.argv if arg != "--smoke-test"])
-    app.setApplicationName("非线路运距计算工具 V1.0")
+    app.setApplicationName("非线路运距计算工具 V1.0 RC2")
     app.setApplicationVersion(__version__)
     app.setOrganizationName("内部工具")
     create_started = time.perf_counter()

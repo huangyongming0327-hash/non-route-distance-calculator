@@ -1,0 +1,25 @@
+{
+  "measured_at": "2026-07-21T18:30:00+08:00",
+  "source": "V1.0 RC1 code path measured before TASK-007A edits",
+  "workbook": {
+    "name": "current_281_row_acceptance_sample",
+    "rows": 281,
+    "file_size_bytes": 828799
+  },
+  "stage_timings_ms": {
+    "open_readonly_workbook": 14.89,
+    "read_sheet_list": 0.0,
+    "detect_header_first20": 500.4,
+    "generate_field_candidates": 194.16,
+    "generate_descriptors": 353.72,
+    "generate_preview_10": 264.84,
+    "full_city_scan": 5317.51,
+    "actual_last_column_full_scan": 30.15,
+    "plan_result_columns_with_second_full_scan": 65.39,
+    "office_detect_excel": 0.17,
+    "office_detect_wps": 0.04,
+    "sqlite_open_and_schema": 1.38,
+    "sqlite_load_addresses": 0.56
+  },
+  "diagnosis": "The GUI-thread repeated read-only cell access and full city scan dominated latency; Office detection and SQLite loading were not material contributors."
+}

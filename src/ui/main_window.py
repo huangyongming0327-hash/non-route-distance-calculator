@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import os
+import threading
 import time
+import uuid
 from collections.abc import Callable
 from pathlib import Path
 
@@ -48,8 +50,14 @@ from src.cache.transfer import (
 )
 from src.domain.models import FieldMapping, OfficeEngine, TaskMode, WorkbookSelection
 from src.office.backend import engine_installed
+from src.performance import PerformanceLogger
 from src.security.key_store import SecureKeyStore
-from src.workbook.preview import WorkbookInfo, inspect_workbook, iter_row_inputs
+from src.workbook.preview import (
+    InspectionCancelled,
+    WorkbookInfo,
+    inspect_workbook_detailed,
+    iter_row_inputs,
+)
 from src.amap.real_clients import RealGeocoder
 
 
@@ -61,6 +69,11 @@ FIELD_LABELS = {
     "destination_address": "目的详细地址",
     "vehicle": "车型（可选，不参与普通驾车距离计算）",
 }
+
+
+def _ui_normalized_path(path: str | Path) -> str:
+    """只做词法规范化，避免 GUI 线程为网络路径执行文件系统解析。"""
+    return os.path.normcase(os.path.abspath(os.fspath(path)))
 
 
 class RunWorker(QObject):
@@ -86,19 +99,211 @@ class RunWorker(QObject):
 
 
 class WorkbookInspectWorker(QObject):
-    finished = Signal(object)
-    failed = Signal(str)
+    finished = Signal(int, object, bool)
+    failed = Signal(int, str)
+    cancelled = Signal(int)
+    progress_changed = Signal(int, str)
 
-    def __init__(self, path: Path) -> None:
+    def __init__(
+        self,
+        request_id: int,
+        path: Path,
+        sheet_name: str | None,
+        header_row: int | None,
+        cache_dir: Path,
+        performance_logger: PerformanceLogger,
+    ) -> None:
         super().__init__()
+        self.request_id = request_id
         self.path = path
+        self.sheet_name = sheet_name
+        self.header_row = header_row
+        self.cache_dir = cache_dir
+        self.performance_logger = performance_logger
+        self.cancel_event = threading.Event()
+
+    def cancel(self) -> None:
+        self.cancel_event.set()
+
+    def _record_timing(
+        self, stage: str, elapsed_ms: float, status: str, details: dict
+    ) -> None:
+        self.performance_logger.record(
+            f"工作簿检测#{self.request_id}", stage, elapsed_ms, status=status, details=details
+        )
 
     @Slot()
     def run(self) -> None:
+        started = time.perf_counter()
         try:
-            self.finished.emit(inspect_workbook(self.path, None, None))
+            outcome = inspect_workbook_detailed(
+                self.path,
+                self.sheet_name,
+                self.header_row,
+                cache_dir=self.cache_dir,
+                cancel_event=self.cancel_event,
+                progress=lambda text: self.progress_changed.emit(self.request_id, text),
+                timing=self._record_timing,
+            )
+            self.performance_logger.record(
+                f"工作簿检测#{self.request_id}",
+                "检测总计",
+                (time.perf_counter() - started) * 1000,
+                details={"file": self.path.name, "cache_hit": outcome.cache_hit},
+            )
+            self.finished.emit(self.request_id, outcome.info, outcome.cache_hit)
+        except InspectionCancelled:
+            self.performance_logger.record(
+                f"工作簿检测#{self.request_id}",
+                "检测总计",
+                (time.perf_counter() - started) * 1000,
+                status="cancelled",
+                details={"file": self.path.name},
+            )
+            self.cancelled.emit(self.request_id)
         except Exception as exc:
-            self.failed.emit(str(exc))
+            self.performance_logger.record(
+                f"工作簿检测#{self.request_id}",
+                "检测总计",
+                (time.perf_counter() - started) * 1000,
+                status="failed",
+                details={"file": self.path.name, "error_type": type(exc).__name__},
+            )
+            self.failed.emit(self.request_id, str(exc))
+
+
+class OutputPermissionWorker(QObject):
+    finished = Signal(int, str, str)
+
+    def __init__(
+        self,
+        request_id: int,
+        path: str,
+        performance_logger: PerformanceLogger,
+        *,
+        timeout_seconds: float = 3.0,
+    ) -> None:
+        super().__init__()
+        self.request_id = request_id
+        self.path = path
+        self.performance_logger = performance_logger
+        self.timeout_seconds = timeout_seconds
+
+    def _probe(self) -> tuple[str, str]:
+        directory = Path(self.path)
+        if not directory.exists():
+            return "missing", "目录不存在"
+        if not directory.is_dir():
+            return "invalid", "所选路径不是目录"
+        probe = directory / f".task007a_write_probe_{uuid.uuid4().hex}.tmp"
+        try:
+            descriptor = os.open(probe, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+            os.close(descriptor)
+            return "writable", "可写"
+        except PermissionError:
+            return "denied", "无写入权限"
+        except OSError as exc:
+            return "error", f"权限检查失败：{exc}"
+        finally:
+            try:
+                probe.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+    @Slot()
+    def run(self) -> None:
+        started = time.perf_counter()
+        result: list[tuple[str, str]] = []
+
+        def probe() -> None:
+            result.append(self._probe())
+
+        # 系统文件调用可能被慢磁盘或网络目录挂起；用守护线程隔离并在超时后恢复 UI。
+        probe_thread = threading.Thread(target=probe, daemon=True, name="output-permission-probe")
+        probe_thread.start()
+        probe_thread.join(self.timeout_seconds)
+        if probe_thread.is_alive():
+            status, message = "timeout", f"写入权限检查超过 {self.timeout_seconds:g} 秒，已停止等待"
+        else:
+            status, message = result[0] if result else ("error", "权限检查未返回结果")
+        self.performance_logger.record(
+            f"输出目录检查#{self.request_id}",
+            "输出目录权限检查",
+            (time.perf_counter() - started) * 1000,
+            status=status,
+            details={"directory_name": Path(self.path).name},
+        )
+        self.finished.emit(self.request_id, status, message)
+
+
+class AddressRefreshWorker(QObject):
+    finished = Signal(int, object, object, bool)
+    failed = Signal(int, str)
+
+    def __init__(
+        self,
+        request_id: int,
+        root: Path,
+        selection: WorkbookSelection | None,
+        city_catalog: tuple[str, ...],
+        performance_logger: PerformanceLogger,
+    ) -> None:
+        super().__init__()
+        self.request_id = request_id
+        self.root = root
+        self.selection = selection
+        self.city_catalog = city_catalog
+        self.performance_logger = performance_logger
+
+    @Slot()
+    def run(self) -> None:
+        repository = None
+        overall_started = time.perf_counter()
+        try:
+            sqlite_started = time.perf_counter()
+            repository = CacheRepository(self.root / "cache" / "driving_real.sqlite")
+            self.performance_logger.record(
+                f"地址清单#{self.request_id}",
+                "SQLite加载",
+                (time.perf_counter() - sqlite_started) * 1000,
+            )
+            usage = {}
+            if self.selection is not None:
+                http = AmapHttpClient(
+                    SecureKeyStore(self.root),
+                    audit_logger=RealApiAuditLogger(
+                        self.root / "logs" / "address_confirmation" / "http"
+                    ),
+                    max_attempts=3,
+                )
+                service = AddressBookService(
+                    repository, geocoder=RealGeocoder(http, mode=DRIVING_MODE)
+                )
+                usage_started = time.perf_counter()
+                _, usage = service.sync_rows(
+                    iter_row_inputs(self.selection), self.city_catalog
+                )
+                self.performance_logger.record(
+                    f"地址清单#{self.request_id}",
+                    "后台同步工作簿地址",
+                    (time.perf_counter() - usage_started) * 1000,
+                    details={"file": Path(self.selection.path).name},
+                )
+            records = repository.list_addresses()
+            self.performance_logger.record(
+                f"地址清单#{self.request_id}",
+                "地址清单总计",
+                (time.perf_counter() - overall_started) * 1000,
+                details={"record_count": len(records)},
+            )
+            self.finished.emit(
+                self.request_id, records, usage, self.selection is not None
+            )
+        except Exception as exc:
+            self.failed.emit(self.request_id, str(exc))
+        finally:
+            if repository:
+                repository.close()
 
 
 class MainWindow(QMainWindow):
@@ -111,6 +316,7 @@ class MainWindow(QMainWindow):
     ) -> None:
         super().__init__()
         self.root = Path(project_root).resolve()
+        self.performance_logger = PerformanceLogger(self.root / "logs" / "performance_task007a.jsonl")
         self.startup_recorder = startup_recorder
         self.startup_timings: list[tuple[str, float]] = []
         self.runner: PrototypeRunner | None = None
@@ -118,10 +324,29 @@ class MainWindow(QMainWindow):
         self.worker: RunWorker | None = None
         self.startup_thread: QThread | None = None
         self.startup_worker: WorkbookInspectWorker | None = None
+        self.inspection_request_sequence = 0
+        self.latest_inspection_request_id = 0
+        self.active_inspection_request: dict | None = None
+        self.pending_inspection_request: dict | None = None
+        self.last_inspection_error: tuple[str, str] | None = None
         self.startup_workbook_started = 0.0
         self.pending_inspection_stage = "读取工作簿"
         self.pending_refresh_addresses = True
         self.close_when_startup_done = False
+        self.close_when_background_done = False
+        self.output_permission_thread: QThread | None = None
+        self.output_permission_worker: OutputPermissionWorker | None = None
+        self.output_permission_request_id = 0
+        self.latest_output_permission_request_id = 0
+        self.pending_output_permission_path: str | None = None
+        self.address_refresh_thread: QThread | None = None
+        self.address_refresh_worker: AddressRefreshWorker | None = None
+        self.address_refresh_request_id = 0
+        self.latest_address_refresh_request_id = 0
+        self.pending_address_refresh = False
+        self.pending_address_sync_workbook = False
+        self.address_refresh_started = 0.0
+        self.address_refresh_record_startup = False
         self.info: WorkbookInfo | None = None
         self.last_output: Path | None = None
         self.close_when_done = False
@@ -130,7 +355,7 @@ class MainWindow(QMainWindow):
         self.address_usage = {}
         self.output_manually_selected = False
         self.key_store = SecureKeyStore(self.root)
-        self.setWindowTitle("非线路运距计算工具 V1.0 — 高德普通驾车距离版")
+        self.setWindowTitle("非线路运距计算工具 V1.0 RC2 — 高德普通驾车距离版")
         self.resize(1200, 820)
         self.setMinimumSize(780, 560)
         self._build_ui()
@@ -192,48 +417,132 @@ class MainWindow(QMainWindow):
         self,
         path: Path,
         *,
+        sheet_name: str | None = None,
+        header_row: int | None = None,
         stage: str = "读取用户工作簿",
         refresh_addresses: bool = True,
     ) -> None:
-        if self.startup_thread and self.startup_thread.isRunning():
-            QMessageBox.information(self, "正在读取", "上一个工作簿仍在读取，请稍候。")
+        source = Path(_ui_normalized_path(path))
+        active = self.active_inspection_request
+        if active and (
+            active["path"] == source
+            and active["sheet_name"] == sheet_name
+            and active["header_row"] == header_row
+        ):
+            self.performance_logger.record(
+                f"工作簿检测#{active['id']}", "阻止重复检测", 0, status="ignored"
+            )
             return
-        self.pending_inspection_stage = stage
-        self.pending_refresh_addresses = refresh_addresses
+        self.inspection_request_sequence += 1
+        request = {
+            "id": self.inspection_request_sequence,
+            "path": source,
+            "sheet_name": sheet_name,
+            "header_row": header_row,
+            "stage": stage,
+            "refresh_addresses": refresh_addresses,
+        }
+        self.latest_inspection_request_id = request["id"]
+        if self.startup_thread and self.startup_thread.isRunning():
+            self.pending_inspection_request = request
+            if self.startup_worker:
+                self.startup_worker.cancel()
+            self.detection_status_label.setText("正在取消旧检测，随后读取新文件…")
+            self.cancel_detect_button.setEnabled(True)
+            return
+        self._launch_workbook_inspection(request)
+
+    def _launch_workbook_inspection(self, request: dict) -> None:
+        self.active_inspection_request = request
+        self.pending_inspection_stage = request["stage"]
+        self.pending_refresh_addresses = request["refresh_addresses"]
         self.startup_workbook_started = time.perf_counter()
-        self.summary_label.setText("正在读取工作簿和识别字段，请稍候…")
-        self.select_button.setEnabled(False)
-        self.detect_button.setEnabled(False)
+        self.detection_status_label.setText("正在读取工作表")
+        self._set_inspection_busy(True)
         self.startup_thread = QThread(self)
-        self.startup_worker = WorkbookInspectWorker(path)
+        self.startup_worker = WorkbookInspectWorker(
+            request["id"],
+            request["path"],
+            request["sheet_name"],
+            request["header_row"],
+            self.root / "cache" / "workbook_detection",
+            self.performance_logger,
+        )
         self.startup_worker.moveToThread(self.startup_thread)
         self.startup_thread.started.connect(self.startup_worker.run)
         self.startup_worker.finished.connect(self._startup_workbook_loaded)
         self.startup_worker.failed.connect(self._startup_workbook_failed)
+        self.startup_worker.cancelled.connect(self._startup_workbook_cancelled)
+        self.startup_worker.progress_changed.connect(self._inspection_progress)
         self.startup_worker.finished.connect(self.startup_thread.quit)
         self.startup_worker.failed.connect(self.startup_thread.quit)
+        self.startup_worker.cancelled.connect(self.startup_thread.quit)
         self.startup_thread.finished.connect(self._startup_thread_finished)
         self.startup_thread.start()
 
-    @Slot(object)
-    def _startup_workbook_loaded(self, info: WorkbookInfo) -> None:
+    def _set_inspection_busy(self, busy: bool) -> None:
+        self.detect_button.setEnabled(not busy and bool(self.file_edit.text().strip()))
+        self.detect_button.setText("检测中…" if busy else "自动检测表头/字段")
+        self.cancel_detect_button.setEnabled(busy)
+        self.sheet_combo.setEnabled(not busy)
+
+    @Slot()
+    def _cancel_workbook_inspection(self) -> None:
+        self.pending_inspection_request = None
+        self.latest_inspection_request_id += 1
+        if self.startup_worker:
+            self.startup_worker.cancel()
+            self.detection_status_label.setText("正在取消当前检测…")
+
+    @Slot(int, str)
+    def _inspection_progress(self, request_id: int, text: str) -> None:
+        if request_id == self.latest_inspection_request_id:
+            self.detection_status_label.setText(text)
+
+    @Slot(int, object, bool)
+    def _startup_workbook_loaded(
+        self, request_id: int, info: WorkbookInfo, cache_hit: bool
+    ) -> None:
         self._record_startup_timing(
             self.pending_inspection_stage,
             (time.perf_counter() - self.startup_workbook_started) * 1000,
         )
+        if request_id != self.latest_inspection_request_id:
+            return
+        try:
+            current_path = _ui_normalized_path(self.file_edit.text())
+        except OSError:
+            return
+        if current_path != _ui_normalized_path(info.path):
+            return
+        self.last_inspection_error = None
         self._apply_workbook_info(
             info,
             refresh_addresses=self.pending_refresh_addresses,
         )
+        source = "检测缓存" if cache_hit else "只读 OOXML"
+        self.detection_status_label.setText(
+            f"检测完成（{source}）：工作表“{info.selected_sheet}”，表头第 {info.header_row} 行"
+        )
 
-    @Slot(str)
-    def _startup_workbook_failed(self, message: str) -> None:
+    @Slot(int, str)
+    def _startup_workbook_failed(self, request_id: int, message: str) -> None:
         self._record_startup_timing(
             self.pending_inspection_stage,
             (time.perf_counter() - self.startup_workbook_started) * 1000,
         )
-        self.summary_label.setText(f"工作簿读取失败：{message}")
-        QMessageBox.warning(self, "无法读取工作簿", message)
+        if request_id != self.latest_inspection_request_id:
+            return
+        self.detection_status_label.setText(f"检测失败：{message}")
+        error_key = (self.file_edit.text(), message)
+        if error_key != self.last_inspection_error:
+            self.last_inspection_error = error_key
+            QMessageBox.warning(self, "无法读取工作簿", message)
+
+    @Slot(int)
+    def _startup_workbook_cancelled(self, request_id: int) -> None:
+        if request_id == self.latest_inspection_request_id:
+            self.detection_status_label.setText("检测已取消。")
 
     @Slot()
     def _startup_thread_finished(self) -> None:
@@ -243,8 +552,13 @@ class MainWindow(QMainWindow):
             self.startup_thread.deleteLater()
         self.startup_worker = None
         self.startup_thread = None
-        self.select_button.setEnabled(True)
-        self.detect_button.setEnabled(True)
+        self.active_inspection_request = None
+        pending = self.pending_inspection_request
+        self.pending_inspection_request = None
+        if pending:
+            self._launch_workbook_inspection(pending)
+            return
+        self._set_inspection_busy(False)
         if self.close_when_startup_done:
             self.close()
 
@@ -303,10 +617,16 @@ class MainWindow(QMainWindow):
         self.select_button = QPushButton("选择 Excel 文件")
         self.output_edit = QLineEdit(str(self.root / "outputs"))
         self.output_button = QPushButton("选择输出目录")
+        self.output_status_label = QLabel("输出目录：尚未检查")
+        self.output_status_label.setWordWrap(True)
         self.sheet_combo = QComboBox()
         self.header_spin = QSpinBox()
         self.header_spin.setRange(1, 1000)
         self.detect_button = QPushButton("自动检测表头/字段")
+        self.cancel_detect_button = QPushButton("取消当前检测")
+        self.cancel_detect_button.setEnabled(False)
+        self.detection_status_label = QLabel("工作簿检测：待开始")
+        self.detection_status_label.setWordWrap(True)
         for widget in (self.file_edit, self.output_edit, self.sheet_combo):
             self._set_expanding(widget)
         file_grid.setColumnStretch(1, 1)
@@ -316,11 +636,14 @@ class MainWindow(QMainWindow):
         file_grid.addWidget(QLabel("输出目录"), 1, 0)
         file_grid.addWidget(self.output_edit, 1, 1)
         file_grid.addWidget(self.output_button, 1, 2)
-        file_grid.addWidget(QLabel("工作表"), 2, 0)
-        file_grid.addWidget(self.sheet_combo, 2, 1)
-        file_grid.addWidget(QLabel("表头行"), 3, 0)
-        file_grid.addWidget(self.header_spin, 3, 1)
-        file_grid.addWidget(self.detect_button, 3, 2)
+        file_grid.addWidget(self.output_status_label, 2, 1, 1, 3)
+        file_grid.addWidget(QLabel("工作表"), 3, 0)
+        file_grid.addWidget(self.sheet_combo, 3, 1)
+        file_grid.addWidget(QLabel("表头行"), 4, 0)
+        file_grid.addWidget(self.header_spin, 4, 1)
+        file_grid.addWidget(self.detect_button, 4, 2)
+        file_grid.addWidget(self.cancel_detect_button, 4, 3)
+        file_grid.addWidget(self.detection_status_label, 5, 1, 1, 3)
         page_layout.addWidget(file_group)
 
         mapping_group = QGroupBox("2. 字段映射（列字母｜表头｜样例内容）")
@@ -574,7 +897,8 @@ class MainWindow(QMainWindow):
     def _wire_events(self) -> None:
         self.select_button.clicked.connect(self._select_file)
         self.output_button.clicked.connect(self._select_output)
-        self.detect_button.clicked.connect(lambda: self._inspect_current())
+        self.detect_button.clicked.connect(lambda: self._inspect_current(force_auto_header=True))
+        self.cancel_detect_button.clicked.connect(self._cancel_workbook_inspection)
         self.sheet_combo.currentTextChanged.connect(lambda: self._sheet_changed())
         self.start_button.clicked.connect(self._start)
         self.pause_button.clicked.connect(lambda: self.runner and self.runner.pause())
@@ -615,6 +939,7 @@ class MainWindow(QMainWindow):
             box.currentIndexChanged.connect(lambda: self._mapping_changed())
 
     def _refresh_office_engines(self) -> None:
+        overall_started = time.perf_counter()
         selected = self.engine_combo.currentData()
         self.engine_combo.blockSignals(True)
         self.engine_combo.clear()
@@ -623,7 +948,14 @@ class MainWindow(QMainWindow):
             (OfficeEngine.EXCEL, "Microsoft Excel"),
             (OfficeEngine.WPS, "WPS 表格（实验性隔离）"),
         ):
+            engine_started = time.perf_counter()
             installed = engine_installed(engine)
+            self.performance_logger.record(
+                "启动检查",
+                f"Office检测-{engine.value}",
+                (time.perf_counter() - engine_started) * 1000,
+                details={"installed": installed},
+            )
             statuses.append(f"{label}：{'已安装' if installed else '未检测到'}")
             self.engine_combo.addItem(
                 f"{label}｜{'已安装' if installed else '未检测到'}", engine.value
@@ -632,6 +964,11 @@ class MainWindow(QMainWindow):
         self.engine_combo.setCurrentIndex(max(0, restored))
         self.engine_combo.blockSignals(False)
         self.office_status_label.setText("｜".join(statuses))
+        self.performance_logger.record(
+            "启动检查",
+            "Office检测",
+            (time.perf_counter() - overall_started) * 1000,
+        )
 
     def _refresh_key_state(self) -> None:
         state = self.key_store.load()
@@ -828,40 +1165,120 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _select_file(self) -> None:
+        operation = f"选择输入文件#{uuid.uuid4().hex[:8]}"
+        click_started = time.perf_counter()
+        self.performance_logger.record(operation, "点击选择输入文件", 0)
         path, _ = QFileDialog.getOpenFileName(
             self, "选择 Excel/WPS 工作簿", str(self.root), "Excel 工作簿 (*.xlsx *.xlsm)"
         )
+        self.performance_logger.record(
+            operation,
+            "文件对话框返回",
+            (time.perf_counter() - click_started) * 1000,
+            status="selected" if path else "cancelled",
+            details={"file": Path(path).name if path else ""},
+        )
         if path:
             self.file_edit.setText(path)
+            self.info = None
+            self.confirm_checkbox.setChecked(False)
+            self.start_button.setEnabled(False)
+            self.detection_status_label.setText("文件已选择，等待后台检测…")
             if not self.output_manually_selected:
-                self.output_edit.setText(str(Path(path).resolve().parent))
+                self.output_edit.setText(str(Path(os.path.abspath(path)).parent))
             self._start_workbook_inspection(Path(path))
 
     @Slot()
     def _select_output(self) -> None:
+        operation = f"选择输出目录#{uuid.uuid4().hex[:8]}"
+        click_started = time.perf_counter()
+        self.performance_logger.record(operation, "点击选择输出目录", 0)
         path = QFileDialog.getExistingDirectory(self, "选择输出目录", self.output_edit.text())
+        self.performance_logger.record(
+            operation,
+            "输出目录对话框返回",
+            (time.perf_counter() - click_started) * 1000,
+            status="selected" if path else "cancelled",
+            details={"directory_name": Path(path).name if path else ""},
+        )
         if path:
+            # 返回后只保存字符串和更新界面；存在性/写权限检查在后台执行。
             self.output_edit.setText(path)
             self.output_manually_selected = True
+            self.output_status_label.setText("输出目录：正在后台检查…")
+            QTimer.singleShot(0, lambda selected=path: self._start_output_permission_check(selected))
+
+    def _start_output_permission_check(self, path: str) -> None:
+        self.output_permission_request_id += 1
+        request_id = self.output_permission_request_id
+        self.latest_output_permission_request_id = request_id
+        if self.output_permission_thread and self.output_permission_thread.isRunning():
+            self.pending_output_permission_path = path
+            return
+        self.pending_output_permission_path = None
+        self.output_permission_thread = QThread(self)
+        self.output_permission_worker = OutputPermissionWorker(
+            request_id, path, self.performance_logger
+        )
+        self.output_permission_worker.moveToThread(self.output_permission_thread)
+        self.output_permission_thread.started.connect(self.output_permission_worker.run)
+        self.output_permission_worker.finished.connect(self._output_permission_finished)
+        self.output_permission_worker.finished.connect(self.output_permission_thread.quit)
+        self.output_permission_thread.finished.connect(self._output_permission_thread_finished)
+        self.output_permission_thread.start()
+
+    @Slot(int, str, str)
+    def _output_permission_finished(
+        self, request_id: int, status: str, message: str
+    ) -> None:
+        if request_id != self.latest_output_permission_request_id:
+            return
+        prefix = "输出目录检查完成" if status == "writable" else "输出目录检查提示"
+        self.output_status_label.setText(f"{prefix}：{message}")
+
+    @Slot()
+    def _output_permission_thread_finished(self) -> None:
+        if self.output_permission_worker:
+            self.output_permission_worker.deleteLater()
+        if self.output_permission_thread:
+            self.output_permission_thread.deleteLater()
+        self.output_permission_worker = None
+        self.output_permission_thread = None
+        pending = self.pending_output_permission_path
+        self.pending_output_permission_path = None
+        if pending:
+            self._start_output_permission_check(pending)
+        elif self.close_when_background_done:
+            self.close()
 
     @Slot()
     def _sheet_changed(self) -> None:
         if self.sheet_combo.currentText() and self.info and self.sheet_combo.currentText() != self.info.selected_sheet:
-            self._inspect_current(manual_sheet=self.sheet_combo.currentText())
+            self._inspect_current(
+                manual_sheet=self.sheet_combo.currentText(), force_auto_header=True
+            )
 
     def _inspect_current(
         self,
         manual_sheet: str | None = None,
         *,
         refresh_addresses: bool = True,
+        force_auto_header: bool = False,
     ) -> None:
-        try:
-            path = Path(self.file_edit.text())
-            header = self.header_spin.value() if self.header_spin.value() > 1 else None
-            info = inspect_workbook(path, manual_sheet, header)
-            self._apply_workbook_info(info, refresh_addresses=refresh_addresses)
-        except Exception as exc:
-            QMessageBox.critical(self, "无法读取工作簿", str(exc))
+        text = self.file_edit.text().strip()
+        if not text:
+            self.detection_status_label.setText("请先选择工作簿。")
+            return
+        header = None if force_auto_header else (
+            self.header_spin.value() if self.header_spin.value() > 1 else None
+        )
+        selected_sheet = manual_sheet or (self.sheet_combo.currentText() or None)
+        self._start_workbook_inspection(
+            Path(text),
+            sheet_name=selected_sheet,
+            header_row=header,
+            refresh_addresses=refresh_addresses,
+        )
 
     def _apply_workbook_info(
         self,
@@ -911,7 +1328,7 @@ class MainWindow(QMainWindow):
 
     @Slot(int)
     def _tab_changed(self, index: int) -> None:
-        if self.tab_widget.widget(index) is self.address_page:
+        if self.tab_widget.widget(index) is self.address_page and not self.address_records:
             self._refresh_address_table()
 
     @Slot()
@@ -921,43 +1338,92 @@ class MainWindow(QMainWindow):
         record_startup: bool = False,
         sync_workbook: bool = False,
     ) -> None:
-        repository = None
-        service = None
-        open_started = time.perf_counter()
-        try:
-            repository, service = self._address_service()
-        except Exception as exc:
-            self.address_summary_label.setText(f"地址库打开失败：{exc}")
-        finally:
-            if record_startup:
-                self._record_startup_timing("打开SQLite", (time.perf_counter() - open_started) * 1000)
+        if self.address_refresh_thread and self.address_refresh_thread.isRunning():
+            self.pending_address_refresh = True
+            self.pending_address_sync_workbook = (
+                self.pending_address_sync_workbook or sync_workbook
+            )
+            self.address_refresh_record_startup = (
+                self.address_refresh_record_startup or record_startup
+            )
+            return
 
-        load_started = time.perf_counter()
-        try:
-            if not repository or not service:
-                return
-            if self.info and sync_workbook:
-                selection = WorkbookSelection(
-                    str(Path(self.file_edit.text()).resolve()), self.info.selected_sheet,
-                    self.header_spin.value(), self._current_mapping(),
-                )
-                _, self.address_usage = service.sync_rows(
-                    iter_row_inputs(selection), self.info.city_catalog
-                )
-            elif not self.info:
-                self.address_usage = {}
-            # 地址确认页面展示当前整个可信地址库，当前工作簿用量作为附加信息。
-            self.address_records = repository.list_addresses()
-            self._populate_address_table()
-        except Exception as exc:
-            self.address_summary_label.setText(f"地址清单加载失败：{exc}")
-        finally:
-            if record_startup:
-                self._record_startup_timing(
-                    "加载地址清单", (time.perf_counter() - load_started) * 1000
-                )
-            if repository:
-                repository.close()
+        selection = None
+        city_catalog: tuple[str, ...] = ()
+        if self.info and sync_workbook:
+            selection = WorkbookSelection(
+                self.info.path,
+                self.info.selected_sheet,
+                self.header_spin.value(),
+                self._current_mapping(),
+            )
+            city_catalog = self.info.city_catalog
+        elif not self.info:
+            self.address_usage = {}
+
+        self.address_refresh_request_id += 1
+        request_id = self.address_refresh_request_id
+        self.latest_address_refresh_request_id = request_id
+        self.address_refresh_started = time.perf_counter()
+        self.address_refresh_record_startup = record_startup
+        self.address_summary_label.setText("正在后台加载地址清单…")
+        self.address_refresh_thread = QThread(self)
+        self.address_refresh_worker = AddressRefreshWorker(
+            request_id,
+            self.root,
+            selection,
+            city_catalog,
+            self.performance_logger,
+        )
+        self.address_refresh_worker.moveToThread(self.address_refresh_thread)
+        self.address_refresh_thread.started.connect(self.address_refresh_worker.run)
+        self.address_refresh_worker.finished.connect(self._address_refresh_finished)
+        self.address_refresh_worker.failed.connect(self._address_refresh_failed)
+        self.address_refresh_worker.finished.connect(self.address_refresh_thread.quit)
+        self.address_refresh_worker.failed.connect(self.address_refresh_thread.quit)
+        self.address_refresh_thread.finished.connect(self._address_refresh_thread_finished)
+        self.address_refresh_thread.start()
+
+    @Slot(int, object, object, bool)
+    def _address_refresh_finished(
+        self, request_id: int, records: list, usage: dict, workbook_synced: bool
+    ) -> None:
+        if request_id != self.latest_address_refresh_request_id:
+            return
+        self.address_records = records
+        if workbook_synced:
+            self.address_usage = usage
+        self._populate_address_table()
+
+    @Slot(int, str)
+    def _address_refresh_failed(self, request_id: int, message: str) -> None:
+        if request_id == self.latest_address_refresh_request_id:
+            self.address_summary_label.setText(f"地址清单加载失败：{message}")
+
+    @Slot()
+    def _address_refresh_thread_finished(self) -> None:
+        if self.address_refresh_record_startup:
+            elapsed = (time.perf_counter() - self.address_refresh_started) * 1000
+            self._record_startup_timing("打开SQLite", elapsed)
+            self._record_startup_timing("加载地址清单", elapsed)
+        if self.address_refresh_worker:
+            self.address_refresh_worker.deleteLater()
+        if self.address_refresh_thread:
+            self.address_refresh_thread.deleteLater()
+        self.address_refresh_worker = None
+        self.address_refresh_thread = None
+        pending = self.pending_address_refresh
+        sync_workbook = self.pending_address_sync_workbook
+        record_startup = self.address_refresh_record_startup
+        self.pending_address_refresh = False
+        self.pending_address_sync_workbook = False
+        self.address_refresh_record_startup = False
+        if pending:
+            self._refresh_address_table(
+                record_startup=record_startup, sync_workbook=sync_workbook
+            )
+        elif self.close_when_background_done:
+            self.close()
 
     def _populate_address_table(self) -> None:
         records = [
@@ -1371,6 +1837,9 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event: QCloseEvent) -> None:
         if self.startup_thread is not None and self.startup_thread.isRunning():
             self.close_when_startup_done = True
+            self.pending_inspection_request = None
+            if self.startup_worker:
+                self.startup_worker.cancel()
             self.summary_label.setText("正在完成只读工作簿检查，完成后将自动关闭。")
             event.ignore()
             return
@@ -1383,6 +1852,19 @@ class MainWindow(QMainWindow):
                 self.close_when_done = True
                 if self.runner:
                     self.runner.stop()
+            event.ignore()
+            return
+        if (
+            self.output_permission_thread is not None
+            and self.output_permission_thread.isRunning()
+        ) or (
+            self.address_refresh_thread is not None
+            and self.address_refresh_thread.isRunning()
+        ):
+            self.close_when_background_done = True
+            self.pending_output_permission_path = None
+            self.pending_address_refresh = False
+            self.summary_label.setText("正在结束后台检查，完成后将自动关闭。")
             event.ignore()
             return
         event.accept()

@@ -33,10 +33,18 @@ def ui(app: QApplication, project_root: Path):
         window = MainWindow(project_root)
         window.resize(1366, 768)
         window.show()
-        app.processEvents()
+        for _ in range(100):
+            app.processEvents()
+            if window.info is not None and window.address_records:
+                break
+            QTest.qWait(20)
         yield window, transport_get
         window.close()
-        app.processEvents()
+        for _ in range(100):
+            app.processEvents()
+            if not window.isVisible():
+                break
+            QTest.qWait(10)
 
 
 def _show_tab(app: QApplication, window: MainWindow, index: int) -> None:

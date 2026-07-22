@@ -1,10 +1,10 @@
-# 非线路运距计算工具 V1.0
+# 非线路运距计算工具 V1.0 RC2
 
 Windows 本地桌面工具，使用高德地理编码和路径规划 2.0 普通驾车接口，为 Excel/WPS 中精确等于“非线路报价”的行生成参考公路距离，并通过本地可信地址库实现“唯一地址一次确认、以后自动复用”。
 
 > 普通驾车参考距离，不代表货车实际可通行路线。本工具不考虑货车限高、限宽、限重、禁行及车牌限制。
 
-当前状态：**V1.0 已通过用户实际业务验收并正式定版。**
+当前状态：**V1.0 RC2 性能优化候选版已完成自动回归，等待用户再次实机验收；不是新的正式 V1.0 发布。**
 
 ## 快速启动
 
@@ -63,7 +63,7 @@ Qt 6 使用 Windows 原生高 DPI 行为，支持 100%/125%/150% 缩放，不要
 - 用户实际处理 74 条非线路报价：73 条距离缓存复用、1 条多目的地警告。
 - Excel/WPS 输出均未发现异常，距离结果经用户人工检查无明显问题。
 - 原样表和 TASK-004R 两份结果文件哈希保持不变。
-- V1.0 回归：189 passed、4 skipped、0 failed；4 个默认跳过的 Office 实机项已单独启用并得到 4 passed。
+- V1.0 RC2 离线回归：200 passed、4 skipped、0 failed；跳过项为需显式启用的真实 Office 测试。
 
 ## 验证命令
 
@@ -96,8 +96,10 @@ Excel/WPS 阶段会启动本工具专属隐藏 Office 进程并执行安全保�
 - `docs/TASK-007_RESULT.md`
 - `docs/FINAL_PRODUCT_TEST_REPORT.md`
 - `docs/PACKAGING_REPORT.md`
-- `release/非线路运距计算工具_V1.0/`
-- `release/非线路运距计算工具_V1.0_便携版.zip`
+- `release/非线路运距计算工具_V1.0_RC2/`
+- `release/非线路运距计算工具_V1.0_RC2_便携版.zip`
+- `docs/PERFORMANCE_OPTIMIZATION_REPORT.md`
+- `docs/TASK-007A_RESULT.md`
 - `docs/ADDRESS_PRECISION_ANALYSIS.md`
 - `docs/CONFIRMED_ADDRESS_DESIGN.md`
 - `docs/ADDRESS_CONFIRMATION_TEST_REPORT.md`

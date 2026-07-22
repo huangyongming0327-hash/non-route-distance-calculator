@@ -8,10 +8,10 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $ProductName = "非线路运距计算工具"
-$ReleaseName = "非线路运距计算工具_V1.0"
+$ReleaseName = "非线路运距计算工具_V1.0_RC2"
 $ReleaseParent = Join-Path $ProjectRoot "release"
 $ReleaseRoot = Join-Path $ReleaseParent $ReleaseName
-$BuildRoot = Join-Path $ProjectRoot "build\v1.0"
+$BuildRoot = Join-Path $ProjectRoot "build\v1.0_rc2"
 $DistRoot = Join-Path $BuildRoot "dist"
 $WorkRoot = Join-Path $BuildRoot "work"
 $SpecRoot = Join-Path $BuildRoot "spec"
@@ -95,19 +95,23 @@ foreach ($document in $RequiredDocuments) {
 }
 
 $GitHash = (git -C $ProjectRoot rev-parse HEAD).Trim()
+$GitStatus = @(git -C $ProjectRoot status --porcelain)
+$WorkingTreeState = if ($GitStatus.Count -eq 0) { "clean" } else { "含未提交的 TASK-007A 候选版修改" }
 $BuildDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss zzz"
 $PythonVersion = (& $Python -c "import platform; print(platform.python_version())").Trim()
 $PySideVersion = (& $Python -c "import PySide6; print(PySide6.__version__)").Trim()
 $VersionLines = @(
     "产品名称：非线路运距计算工具",
-    "版本：V1.0",
+    "版本：V1.0 RC2",
     "构建日期：$BuildDate",
-    "Git Commit Hash：$GitHash",
+    "基线 Git Commit Hash：$GitHash",
+    "构建工作区状态：$WorkingTreeState",
     "Python版本：$PythonVersion",
     "PySide6版本：$PySideVersion",
     "高德接口版本：地理编码 v3；普通驾车路径规划 v5",
     "缓存版本：SQLite schema 5；迁移格式 1",
-    "可信地址库版本：confirmed-address-v1"
+    "可信地址库版本：confirmed-address-v1",
+    "工作簿检测算法版本：task-007a-ooxml-v1"
 )
 [System.IO.File]::WriteAllLines(
     (Join-Path $ReleaseRoot "VERSION.txt"),

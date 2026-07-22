@@ -5,6 +5,7 @@ import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtTest import QTest
 
 from src.ui.main_window import MainWindow
 from src.domain.models import TaskMode
@@ -14,6 +15,11 @@ def test_main_window_loads_sample_and_requires_confirmation(project_root):
     app = QApplication.instance() or QApplication([])
     window = MainWindow(project_root)
     try:
+        for _ in range(100):
+            app.processEvents()
+            if window.info is not None and window.address_records:
+                break
+            QTest.qWait(20)
         assert window.info is not None
         assert window.info.recommended_mapping.quote_type == 13
         assert window.start_button.isEnabled() is False
@@ -28,3 +34,8 @@ def test_main_window_loads_sample_and_requires_confirmation(project_root):
         assert window.start_button.isEnabled() is True
     finally:
         window.close()
+        for _ in range(100):
+            app.processEvents()
+            if not window.isVisible():
+                break
+            QTest.qWait(10)

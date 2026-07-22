@@ -8,7 +8,7 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $ExpectedRelease = [System.IO.Path]::GetFullPath(
-    (Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0")
+    (Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0_RC2")
 )
 if (-not $ReleaseRoot) {
     $ReleaseRoot = $ExpectedRelease
@@ -35,7 +35,7 @@ if ($ForbiddenFiles) {
     throw "发布包发现禁止文件：$($ForbiddenFiles.FullName -join '；')"
 }
 
-$ZipPath = Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0_便携版.zip"
+$ZipPath = Join-Path $ProjectRoot "release\非线路运距计算工具_V1.0_RC2_便携版.zip"
 if (Test-Path -LiteralPath $ZipPath) {
     Remove-Item -LiteralPath $ZipPath -Force
 }
