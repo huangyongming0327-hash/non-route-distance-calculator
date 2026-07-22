@@ -1,0 +1,40 @@
+{
+  "tested_at": "2026-07-22T23:29:23+08:00",
+  "task007a_commit": "8de836634b8ffb26b18c764b31526ce07f808bfb",
+  "release_commit": "95877adb3748d034b158766a55b0e1f78fc9afc4",
+  "real_amap_calls": 0,
+  "offline_pytest": {
+    "passed": 200,
+    "skipped": 4,
+    "failed": 0,
+    "elapsed_seconds": 12.97
+  },
+  "office_pytest": {
+    "passed": 4,
+    "failed": 0,
+    "elapsed_seconds": 41.58
+  },
+  "office_compatibility": {
+    "excel_xlsx_to_xlsm": true,
+    "excel_xlsm_resave": true,
+    "wps_xlsx_to_xlsm": true,
+    "wps_xlsm_resave": true,
+    "critical_failures": 0,
+    "source_hash_unchanged": true
+  },
+  "performance": {
+    "tests_passed": 11,
+    "elapsed_seconds": 5.78,
+    "rows_281_first_ms": 49.50,
+    "rows_281_cached_ms": 12.99,
+    "rows_2000_first_ms": 176.76,
+    "rows_2000_cached_ms": 73.08,
+    "rows_10000_first_ms": 758.12,
+    "rows_10000_cached_ms": 358.47
+  },
+  "portable_paths_passed": 3,
+  "release_scan_hits": 0,
+  "zip_scan_hits": 0,
+  "exe_sha256": "99819A5E75212E06B4043AB7EAB8147289EA8060F2F9D5F756E7C2FF189E0949",
+  "zip_sha256": "02814C1A8AF222424123F519BFF51CA8EEE0E368CE4E73E80D194B265FF5ABA3"
+}

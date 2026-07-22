@@ -1,0 +1,38 @@
+{
+    "tested_at":  "2026-07-22T23:28:22.2890290+08:00",
+    "release_root":  "D:\\AI project\\非线路运距计算\\release\\非线路运距计算工具_V1.0",
+    "maximum_main_window_seconds":  1.53,
+    "maximum_process_elapsed_seconds":  3.181,
+    "results":  [
+                    {
+                        "name":  "开发目录发布包",
+                        "path":  "D:\\AI project\\非线路运距计算\\release\\非线路运距计算工具_V1.0",
+                        "exit_code":  0,
+                        "elapsed_seconds":  1.05,
+                        "main_window_seconds":  0.241,
+                        "startup_log":  "D:\\AI project\\非线路运距计算\\release\\非线路运距计算工具_V1.0\\logs\\startup.log",
+                        "source_directory_absent":  true,
+                        "venv_absent":  true
+                    },
+                    {
+                        "name":  "中文路径",
+                        "path":  "D:\\AI project\\非线路运距计算\\temp\\portable_verification\\中文验证路径\\非线路工具",
+                        "exit_code":  0,
+                        "elapsed_seconds":  3.167,
+                        "main_window_seconds":  1.375,
+                        "startup_log":  "D:\\AI project\\非线路运距计算\\temp\\portable_verification\\中文验证路径\\非线路工具\\logs\\startup.log",
+                        "source_directory_absent":  true,
+                        "venv_absent":  true
+                    },
+                    {
+                        "name":  "带空格路径",
+                        "path":  "D:\\AI project\\非线路运距计算\\temp\\portable_verification\\带 空格 路径\\非线路工具",
+                        "exit_code":  0,
+                        "elapsed_seconds":  3.181,
+                        "main_window_seconds":  1.53,
+                        "startup_log":  "D:\\AI project\\非线路运距计算\\temp\\portable_verification\\带 空格 路径\\非线路工具\\logs\\startup.log",
+                        "source_directory_absent":  true,
+                        "venv_absent":  true
+                    }
+                ]
+}

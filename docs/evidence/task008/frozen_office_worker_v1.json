@@ -1,0 +1,39 @@
+{
+  "exe": "D:\\AI project\\非线路运距计算\\release\\非线路运距计算工具_V1.0\\非线路运距计算工具.exe",
+  "results": [
+    {
+      "engine": "excel",
+      "output": "D:\\AI project\\非线路运距计算\\temp\\frozen_office_verification\\excel_output.xlsm",
+      "response": "D:\\AI project\\非线路运距计算\\temp\\frozen_office_verification\\excel_response.json",
+      "checks": {
+        "exit_code_zero": true,
+        "response_ok": true,
+        "valid_xlsm_format": true,
+        "vba_sources_preserved": true,
+        "automation_security_disabled": true,
+        "events_disabled": true,
+        "own_process_released": true,
+        "preexisting_processes_unchanged": true
+      },
+      "passed": true
+    },
+    {
+      "engine": "wps",
+      "output": "D:\\AI project\\非线路运距计算\\temp\\frozen_office_verification\\wps_output.xlsm",
+      "response": "D:\\AI project\\非线路运距计算\\temp\\frozen_office_verification\\wps_response.json",
+      "checks": {
+        "exit_code_zero": true,
+        "response_ok": true,
+        "valid_xlsm_format": true,
+        "vba_sources_preserved": true,
+        "automation_security_disabled": true,
+        "events_disabled": true,
+        "own_process_released": true,
+        "preexisting_processes_unchanged": true,
+        "preexisting_windows_unchanged": true
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}

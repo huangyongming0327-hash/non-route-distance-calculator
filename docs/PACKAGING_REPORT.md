@@ -1,27 +1,27 @@
 # V1.0 便携版打包报告
 
-打包日期：2026-07-21  
-V1.0 发布源码提交：`8aac1f78f6f4aeae7584ee4a7912678038a22448`
+打包日期：2026-07-22
+TASK-007A 提交：`8de836634b8ffb26b18c764b31526ce07f808bfb`
+V1.0 发布源码提交：`95877adb3748d034b158766a55b0e1f78fc9afc4`
 
 ## 1. 打包方案
 
 - PyInstaller 6.21.0，Python 3.12.10，PySide6 6.9.1。
-- `onedir` + `windowed`，未改为 onefile，启动不出现控制台黑框。
-- 构建脚本：`scripts/build_release.ps1`。
-- 便携验证：`scripts/verify_portable_release.ps1`。
-- 冻结 Office 验证：`scripts/verify_frozen_office_worker.py`。
-- 清理与 ZIP：`scripts/finalize_release.ps1`。
-- 安全扫描：`scripts/scan_release.ps1`。
+- `onedir + windowed`，未改为 onefile；PE Subsystem=2，无黑色控制台窗口。
+- 构建脚本要求 Git 工作区为 clean，并把实际提交 Hash 写入发布目录 `VERSION.txt`。
+- 构建、便携验证、冻结 Office 验证、清理压缩和安全扫描均使用仓库内正式脚本。
 
 ## 2. 正式输出
 
 - 目录：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0`
 - EXE：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0\非线路运距计算工具.exe`
 - ZIP：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0_便携版.zip`
-- ZIP 大小：55,178,135 字节。
-- ZIP SHA-256：`62CAC7C60A81EB7D466EEC6D6098838B00E95987520FB91F016EFA3AA308F9E9`。
+- EXE 大小：3,695,562 字节。
+- EXE SHA-256：`99819A5E75212E06B4043AB7EAB8147289EA8060F2F9D5F756E7C2FF189E0949`。
+- ZIP 大小：55,209,288 字节。
+- ZIP SHA-256：`02814C1A8AF222424123F519BFF51CA8EEE0E368CE4E73E80D194B265FF5ABA3`。
 
-RC1 目录 `release\非线路运距计算工具_V1.0_RC1` 和 RC1 ZIP 原样保留，未覆盖、未删除。
+历史 RC1、RC2 目录和 ZIP 的 EXE/ZIP 哈希在构建前后完全一致，未覆盖、未删除。
 
 ## 3. 发布目录内容
 
@@ -34,18 +34,18 @@ RC1 目录 `release\非线路运距计算工具_V1.0_RC1` 和 RC1 ZIP 原样保�
 - `CHANGELOG.md`
 - `KNOWN_ISSUES.md`
 
-不包含真实 Key、DPAPI 凭据、业务 Excel/结果、可信地址业务数据库、历史路线缓存、真实地址清单、源码或 `.venv`。
+## 4. 便携与 Office 验证
 
-## 4. 验证结果
+- 正式目录、另一中文目录、带空格目录均启动通过；最慢主窗口出现 1.530 秒。
+- 三处均不依赖源码或 `.venv`；日志写入各自便携目录。
+- 正式 EXE 的 Excel/WPS worker 均通过有效 `.xlsm`、VBA 保留、宏/事件禁用和进程隔离检查。
+- 自动测试和用户实机确认输出目录选择、工作簿检测与检测缓存未重新引入卡顿。
+- 离线自动测试为 200 passed、4 skipped、0 failed；性能专项为 11 passed，281 行首次检测 49.50 ms、缓存 12.99 ms。
 
-- 正式目录、另一中文目录、带空格目录启动均通过；最慢主窗口出现时间 1.737 秒。
-- 三处均不依赖源码或 `.venv`，运行数据写入各自便携目录。
-- 冻结 EXE 的 Excel/WPS Office worker 均通过 FileFormat、VBA、安全设置和进程隔离检查。
-- 正式目录与 ZIP 安全扫描各 191 个文件，0 命中；五个运行目录为空。
+## 5. 安全扫描
 
-## 5. 已知打包限制
+正式目录与 ZIP 各 191 个文件，0 命中。五个运行目录为空；不包含真实 Key、DPAPI 凭据、`.env`、SQLite、业务 Excel/结果、地址确认清单、真实地址库、路线缓存、请求 URL、业务日志、源码或 `.venv`。
 
-- WPS 依赖目标机 COM 注册。
-- Key 与当前 Windows 用户绑定，新电脑必须重新输入。
-- 已在 Windows 11 验收；Windows 10 未完成专项实机验证，首次使用应先用业务文件副本测试。
-- 不宣称覆盖所有 Excel、WPS 和 Windows 版本。
+## 6. 部署边界
+
+必须完整解压整个 ZIP，不能在压缩包内运行，不能只复制 EXE 或删除 `_internal`。目标电脑至少安装 Excel 或 WPS；每台新电脑重新保存 Key。可信地址库和缓存通常只需首次导入一次，关闭程序或电脑不会丢失；重新解压到全新目录或删除 `cache` 后需要重新导入。Windows 10 尚未专项实测。

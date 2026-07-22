@@ -7,6 +7,8 @@
 - 正式版本：V1.0
 - 正式分支：`release/v1.0`
 - TASK-007A 提交：`8de836634b8ffb26b18c764b31526ce07f808bfb`
+- V1.0 正式提交：`95877adb3748d034b158766a55b0e1f78fc9afc4`
+- 注释标签：`v1.0`
 - 程序标题：非线路运距计算工具 V1.0 — 高德普通驾车距离版
 - 历史基线标签、历史发布分支、历史发布目录和报告均保留。
 
@@ -22,6 +24,11 @@
 
 - EXE：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0\非线路运距计算工具.exe`
 - ZIP：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0_便携版.zip`
+- 自动测试：200 passed，4 skipped，0 failed；显式 Office 测试：4 passed。
+- 性能专项：11 passed；281/2,000/10,000 行首次检测均低于 1 秒，缓存检测更快。
+- 便携验证：正式目录、中文路径、带空格路径均通过；正式目录和 ZIP 安全扫描 0 命中。
+- EXE SHA-256：`99819A5E75212E06B4043AB7EAB8147289EA8060F2F9D5F756E7C2FF189E0949`
+- ZIP SHA-256：`02814C1A8AF222424123F519BFF51CA8EEE0E368CE4E73E80D194B265FF5ABA3`
 - 发布报告：`docs\FINAL_RELEASE_REPORT.md`
 - 任务结果：`docs\TASK-008_RESULT.md`
 - 性能报告：`docs\PERFORMANCE_OPTIMIZATION_REPORT.md`
