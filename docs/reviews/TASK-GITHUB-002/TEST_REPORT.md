@@ -32,4 +32,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safe
 ## 失败或警告
 
 - 自动化命令失败数为 0。
-- GitHub Actions 结果在 Pull Request 创建后以 Checks 页面为准。
+- GitHub Actions 首次运行 `30103804316` 失败：干净运行器没有禁止上传的业务 Excel，也没有项目 `.venv`。
+- 修复方式：Actions 创建隔离 `.venv`；仅依赖本机私有样表的测试在样表缺失时明确跳过；未上传业务数据。
+- 当前结果：修复已完成，等待重新运行 GitHub Actions。

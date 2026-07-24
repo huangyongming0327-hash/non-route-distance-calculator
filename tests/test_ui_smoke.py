@@ -11,7 +11,7 @@ from src.ui.main_window import MainWindow
 from src.domain.models import TaskMode
 
 
-def test_main_window_loads_sample_and_requires_confirmation(project_root):
+def test_main_window_loads_sample_and_requires_confirmation(project_root, sample_path):
     app = QApplication.instance() or QApplication([])
     window = MainWindow(project_root)
     try:

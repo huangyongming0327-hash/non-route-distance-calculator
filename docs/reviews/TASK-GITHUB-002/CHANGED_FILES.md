@@ -41,6 +41,9 @@
 - `docs/TASK-GITHUB-001A_RESULT.md`：属于本任务范围。
 - `docs/TASK-GITHUB-001B_RESULT.md`：属于本任务范围。
 - `README.md`：属于本任务范围。
+- `tests/conftest.py`：私有业务样表不存在时明确跳过依赖该样表的测试，禁止为 CI 上传业务数据。
+- `tests/test_task007a_performance.py`：放宽 Windows CI 慢速环境中的后台线程清理等待时间。
+- `tests/test_ui_smoke.py`：声明对本机私有样表 fixture 的依赖。
 
 ## 删除文件
 
@@ -89,3 +92,4 @@
 
 - 所有变更是否属于任务范围：是。
 - 是否修改核心业务文件：否；任务只涉及开发流程、测试、GitHub 配置和文档。
+- Actions 首次运行发现的环境差异已在测试和工作流层修复，未上传被忽略的业务 Excel。

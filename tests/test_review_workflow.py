@@ -101,6 +101,12 @@ def test_required_workflow_files_and_safety_guards_exist() -> None:
     assert "scan_repository_safety.ps1" in finalize
     assert "validate_review_package.py" in finalize
 
+    workflow = (ROOT / ".github" / "workflows" / "pr-validation.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "python -m venv .venv" in workflow
+    assert r".\.venv\Scripts\python.exe -m pytest -q" in workflow
+
 
 def test_powershell_scripts_parse_in_windows_powershell() -> None:
     command = (

@@ -13,5 +13,6 @@ def project_root() -> Path:
 @pytest.fixture(scope="session")
 def sample_path(project_root: Path) -> Path:
     path = project_root / "samples" / "input" / "副本26年6月干线账单 2.1-对账2.0-物流商(2).xlsx"
-    assert path.exists()
+    if not path.exists():
+        pytest.skip("本测试需要仅存于本机且禁止上传的业务样表。")
     return path

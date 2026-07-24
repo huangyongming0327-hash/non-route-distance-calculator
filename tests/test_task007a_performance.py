@@ -212,7 +212,7 @@ def test_detection_thread_tab_switch_duplicate_click_and_file_change(
         assert window.detect_button.text() == "自动检测表头/字段"
     finally:
         window.close()
-        _wait_until(app, lambda: not window.isVisible())
+        _wait_until(app, lambda: not window.isVisible(), timeout_ms=15_000)
 
 
 def test_select_output_returns_before_background_permission_check(

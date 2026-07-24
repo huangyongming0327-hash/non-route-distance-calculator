@@ -32,7 +32,7 @@
 - WPS 测试：离线单元测试通过；未运行真实 COM
 - 真实 API 调用次数：0
 - 敏感扫描结果：0 命中
-- GitHub Actions 结果：已触发，以 Pull Request Checks 页面最终结果为准
+- GitHub Actions 结果：首次运行发现干净环境差异，已修复并等待复跑
 
 ## 需要总指挥重点审核
 
