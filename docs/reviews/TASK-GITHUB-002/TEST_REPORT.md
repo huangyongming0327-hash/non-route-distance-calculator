@@ -36,4 +36,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safe
 - 修复方式：Actions 创建隔离 `.venv`；仅依赖本机私有样表的测试在样表缺失时明确跳过；未上传业务数据。
 - GitHub Actions 第二次运行 `30104220026`：完整 pytest、编译和差异检查已通过；安全扫描因 Git 转义中文路径而发生兼容错误，没有敏感内容命中。
 - 修复方式：扫描器固定读取 Git 的未转义路径，并新增中文文件名回归测试。
-- 当前结果：兼容修复已完成，等待重新运行 GitHub Actions。
+- GitHub Actions 第三次运行 `30104491404`：pytest、编译、差异和安全扫描全部通过；审核验证已完成，但输出中文成功提示时遇到 runner CP1252 编码错误。
+- 修复方式：工作流固定 Python UTF-8，并让制品检查只检查 Git 会上传的文件，排除 CI 自身的 `.venv`。
+- 当前结果：编码与制品检查修复已完成，等待重新运行 GitHub Actions。

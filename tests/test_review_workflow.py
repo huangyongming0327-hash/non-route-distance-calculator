@@ -106,6 +106,8 @@ def test_required_workflow_files_and_safety_guards_exist() -> None:
     )
     assert "python -m venv .venv" in workflow
     assert r".\.venv\Scripts\python.exe -m pytest -q" in workflow
+    assert 'PYTHONIOENCODING: "utf-8"' in workflow
+    assert "ls-files --cached --others --exclude-standard" in workflow
 
 
 def test_powershell_scripts_parse_in_windows_powershell() -> None:

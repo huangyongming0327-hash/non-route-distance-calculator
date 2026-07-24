@@ -19,6 +19,8 @@ jobs:
       AMAP_API_KEY: ""
       AMAP_KEY: ""
       PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONIOENCODING: "utf-8"
+      PYTHONUTF8: "1"
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
     steps:
@@ -78,6 +80,10 @@ jobs:
           if (Test-Path release) {
             throw '离线验证不得产生 release 目录。'
           }
-          if (Get-ChildItem -Recurse -File -Include *.exe,*.zip -ErrorAction SilentlyContinue) {
+          $artifacts = @(
+            git -c core.quotepath=false ls-files --cached --others --exclude-standard |
+              Where-Object { $_ -match '(?i)\.(exe|zip)$' }
+          )
+          if ($artifacts.Count -gt 0) {
             throw '离线验证不得产生 EXE 或 ZIP。'
           }
