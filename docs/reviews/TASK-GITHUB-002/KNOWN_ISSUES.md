@@ -9,7 +9,7 @@
 
 ## 暂缓问题
 
-- master 严格分支保护不在本任务中自动开启；需等本 PR 的 Actions 成功并确认检查名称后，由用户在 GitHub 网页决定。
+- master 严格分支保护不在本任务中自动开启；Actions 已成功并确认检查名称，由用户在 GitHub 网页决定是否配置。
 
 ## 用户影响
 
@@ -21,4 +21,4 @@
 
 ## 后续建议
 
-- 本次 PR 的 Actions 成功后，按 `docs/GITHUB_BRANCH_PROTECTION_GUIDE.md` 配置 master。
+- 如需启用严格保护，按 `docs/GITHUB_BRANCH_PROTECTION_GUIDE.md` 配置 master。

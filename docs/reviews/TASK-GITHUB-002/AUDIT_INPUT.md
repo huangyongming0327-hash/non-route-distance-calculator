@@ -3,7 +3,7 @@
 - 任务名称：建立自动上传与在线审核流程
 - 任务分支：`task/TASK-GITHUB-002-review-workflow`
 - 修改前 Commit：`290153e240f059f7e3ffda34476446d77da409b8`
-- 修改后实现 Commit：`68c25096357a863cb8770195c9d8215165b5598a`
+- 修改后实现 Commit：`af2a739ccd358e7f4bc39398339d317729854b77`
 - Pull Request：https://github.com/huangyongming0327-hash/non-route-distance-calculator/pull/1
 
 ## 用户需求原文摘要
@@ -102,7 +102,7 @@
 ## 已知风险
 
 - PowerShell 脚本主要面向 Windows、Git 和 GitHub CLI 环境。
-- GitHub Actions 检查名称应在首次运行成功后再用于分支保护。
+- GitHub Actions 检查名称已确认是 `Windows offline validation`；是否配置为 master 必需检查由用户决定。
 
 ## 重点检查路径
 

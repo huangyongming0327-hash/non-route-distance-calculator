@@ -7,7 +7,7 @@
 - 基础分支：`master`
 - Pull Request 编号：1
 - Pull Request 网页地址：https://github.com/huangyongming0327-hash/non-route-distance-calculator/pull/1
-- 最新审核范围 Commit Hash：`68c25096357a863cb8770195c9d8215165b5598a`
+- 最新审核范围 Commit Hash：`af2a739ccd358e7f4bc39398339d317729854b77`
 - 完成时间：2026-07-24 23:05:25 +08:00
 - 是否已经合并：否
 
@@ -32,7 +32,7 @@
 - WPS 测试：离线单元测试通过；未运行真实 COM
 - 真实 API 调用次数：0
 - 敏感扫描结果：0 命中
-- GitHub Actions 结果：测试、编译、差异和安全扫描已通过；中文输出编码已修复并等待复跑
+- GitHub Actions 结果：通过（Windows offline validation，运行 `30105078932`）
 
 ## 需要总指挥重点审核
 

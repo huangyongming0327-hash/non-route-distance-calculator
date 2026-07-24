@@ -18,7 +18,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safe
 - 通过：206
 - 失败：0
 - 跳过：4
-- 完整离线 pytest：206 passed, 4 skipped in 15.91s
+- 完整离线 pytest：206 passed, 4 skipped in 15.35s
 - 专项测试：随完整离线 pytest 一并执行审核流程专项测试。
 - Excel 测试：离线单元测试执行；未运行真实 Excel COM。
 - WPS 测试：离线单元测试执行；未运行真实 WPS COM。
@@ -38,4 +38,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safe
 - 修复方式：扫描器固定读取 Git 的未转义路径，并新增中文文件名回归测试。
 - GitHub Actions 第三次运行 `30104491404`：pytest、编译、差异和安全扫描全部通过；审核验证已完成，但输出中文成功提示时遇到 runner CP1252 编码错误。
 - 修复方式：工作流固定 Python UTF-8，并让制品检查只检查 Git 会上传的文件，排除 CI 自身的 `.venv`。
-- 当前结果：编码与制品检查修复已完成，等待重新运行 GitHub Actions。
+- GitHub Actions 第四次运行 `30105078932`：199 passed，11 skipped；编译、差异、安全扫描、审核材料和禁止发布制品检查全部通过。
+- CI 比本机多跳过 7 项依赖私有业务样表的测试；样表按安全规则未上传。
+- 当前结果：GitHub Actions 通过。
+- 运行地址：https://github.com/huangyongming0327-hash/non-route-distance-calculator/actions/runs/30105078932
