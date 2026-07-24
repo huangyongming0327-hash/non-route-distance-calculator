@@ -15,7 +15,10 @@ function Get-GitLines {
     $previousPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
-        $output = @(& git @Arguments 2>&1 | ForEach-Object { [string]$_ })
+        $output = @(
+            & git -c core.quotepath=false @Arguments 2>&1 |
+                ForEach-Object { [string]$_ }
+        )
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousPreference

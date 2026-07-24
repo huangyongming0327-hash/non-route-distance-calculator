@@ -175,6 +175,10 @@ def test_review_validator_rejects_placeholder(tmp_path: Path) -> None:
 
 def test_safety_scanner_blocks_synthetic_token_shape(tmp_path: Path) -> None:
     initialize_repository(tmp_path)
+    (tmp_path / "中文说明.md").write_text("合成测试说明\n", encoding="utf-8")
+    run("git", "add", "--", "中文说明.md", cwd=tmp_path)
+    run("git", "commit", "-m", "add non-ascii path", cwd=tmp_path)
+    run("git", "config", "core.quotepath", "true", cwd=tmp_path)
     scripts = tmp_path / "scripts"
     scripts.mkdir()
     shutil.copy2(ROOT / "scripts" / "scan_repository_safety.ps1", scripts)

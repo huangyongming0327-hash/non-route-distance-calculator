@@ -18,7 +18,7 @@
 - 审核范围 Commit：`68c25096357a863cb8770195c9d8215165b5598a`。
 - 固定审核入口：`docs/reviews/LATEST_REVIEW.md`。
 - 测试摘要：206 passed，0 failed，4 skipped；编译、差异和安全扫描通过。
-- GitHub Actions：首次运行发现干净环境缺少私有样表和 `.venv`，已在测试/工作流层修复，等待复跑。
+- GitHub Actions：干净环境完整 pytest 已通过；中文路径扫描兼容问题已修复，等待复跑。
 - 真实 API 调用次数：0。
 
 ## 合并状态

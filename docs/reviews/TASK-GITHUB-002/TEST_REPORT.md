@@ -34,4 +34,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safe
 - 自动化命令失败数为 0。
 - GitHub Actions 首次运行 `30103804316` 失败：干净运行器没有禁止上传的业务 Excel，也没有项目 `.venv`。
 - 修复方式：Actions 创建隔离 `.venv`；仅依赖本机私有样表的测试在样表缺失时明确跳过；未上传业务数据。
-- 当前结果：修复已完成，等待重新运行 GitHub Actions。
+- GitHub Actions 第二次运行 `30104220026`：完整 pytest、编译和差异检查已通过；安全扫描因 Git 转义中文路径而发生兼容错误，没有敏感内容命中。
+- 修复方式：扫描器固定读取 Git 的未转义路径，并新增中文文件名回归测试。
+- 当前结果：兼容修复已完成，等待重新运行 GitHub Actions。
