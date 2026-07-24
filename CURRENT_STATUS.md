@@ -14,8 +14,8 @@
 
 - 任务：TASK-GITHUB-002 — 建立自动上传与在线审核流程。
 - 任务分支：`task/TASK-GITHUB-002-review-workflow`。
-- Pull Request：首次实现提交后由脚本创建并回写
-- 审核范围 Commit：`290153e240f059f7e3ffda34476446d77da409b8`。
+- Pull Request：https://github.com/huangyongming0327-hash/non-route-distance-calculator/pull/1
+- 审核范围 Commit：`68c25096357a863cb8770195c9d8215165b5598a`。
 - 固定审核入口：`docs/reviews/LATEST_REVIEW.md`。
 - 测试摘要：206 passed，0 failed，4 skipped；编译、差异和安全扫描通过。
 - 真实 API 调用次数：0。

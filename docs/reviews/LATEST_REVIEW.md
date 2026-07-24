@@ -5,10 +5,10 @@
 - 当前状态：已完成本地验证并提交待审核；尚未合并
 - 任务分支：`task/TASK-GITHUB-002-review-workflow`
 - 基础分支：`master`
-- Pull Request 编号：首次提交后回写
-- Pull Request 网页地址：首次实现提交后由脚本创建并回写
-- 最新审核范围 Commit Hash：`290153e240f059f7e3ffda34476446d77da409b8`
-- 完成时间：2026-07-24 23:05:13 +08:00
+- Pull Request 编号：1
+- Pull Request 网页地址：https://github.com/huangyongming0327-hash/non-route-distance-calculator/pull/1
+- 最新审核范围 Commit Hash：`68c25096357a863cb8770195c9d8215165b5598a`
+- 完成时间：2026-07-24 23:05:25 +08:00
 - 是否已经合并：否
 
 ## 审核材料入口
