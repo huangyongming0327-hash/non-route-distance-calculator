@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import re
@@ -57,7 +58,17 @@ def create_valid_review_package(path: Path) -> None:
         if name == "REVIEW_INDEX.md":
             text += f"\n- 实现 Commit：`{COMMIT}`\n- Pull Request：{PR_URL}\n"
         elif name == "TEST_REPORT.md":
-            text += "\n- 通过：3\n- 失败：0\n- 跳过：1\n- 真实 API 调用次数：0\n"
+            text += (
+                "\n- 通过：3\n- 失败：0\n- 跳过：1\n"
+                "- 完整离线 pytest：3 passed, 1 skipped\n"
+            )
+        elif name == "CHANGED_FILES.md":
+            expected_paths = [
+                "docs/reviews/LATEST_REVIEW.md",
+                *(f"docs/reviews/{TASK_ID}/{item}" for item in REQUIRED_REVIEW_FILES),
+                f"docs/reviews/{TASK_ID}/REVIEW_CONTEXT.json",
+            ]
+            text += "\n" + "\n".join(f"- `{item}`" for item in expected_paths) + "\n"
         elif name == "SECURITY_REPORT.md":
             text += "\n安全扫描：0 命中。\n\n是否允许推送：是。\n"
         elif name == "KNOWN_ISSUES.md":
@@ -69,10 +80,22 @@ def create_valid_review_package(path: Path) -> None:
             text += f"\n- 修改后 Commit：`{COMMIT}`\n- Pull Request：{PR_URL}\n"
         (review_dir / name).write_text(text, encoding="utf-8")
 
+    (review_dir / "REVIEW_CONTEXT.json").write_text(
+        json.dumps(
+            {
+                "task_name": "合成审核任务",
+                "task_goal": ["验证审核材料。"],
+            },
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     latest = (
         f"# 最新待审核任务\n\n- 任务编号：{TASK_ID}\n"
         f"- 任务分支：`{BRANCH}`\n"
         f"- 最新 Commit：`{COMMIT}`\n"
+        "- 审核目标：Pull Request 当前 HEAD\n"
         f"- Pull Request：{PR_URL}\n"
         f"- 审核入口：{TASK_ID}/REVIEW_INDEX.md\n"
     )
@@ -87,6 +110,8 @@ def test_required_workflow_files_and_safety_guards_exist() -> None:
     for name in REQUIRED_REVIEW_FILES:
         assert (template / name).is_file()
         assert (task_review / name).is_file()
+    assert (template / "REVIEW_CONTEXT.json").is_file()
+    assert (task_review / "REVIEW_CONTEXT.json").is_file()
 
     finalize = (ROOT / "scripts" / "finalize_task.ps1").read_text(
         encoding="utf-8-sig"
@@ -100,6 +125,9 @@ def test_required_workflow_files_and_safety_guards_exist() -> None:
     assert "--draft" in finalize
     assert "scan_repository_safety.ps1" in finalize
     assert "validate_review_package.py" in finalize
+    assert "REVIEW_CONTEXT.json" in finalize
+    assert "建立 Codex 自动上传与 GitHub 在线审核流程" not in finalize
+    assert "本任务只建立开发与审核流程" not in finalize
 
     workflow = (ROOT / ".github" / "workflows" / "pr-validation.yml").read_text(
         encoding="utf-8"
@@ -175,6 +203,36 @@ def test_review_validator_rejects_placeholder(tmp_path: Path) -> None:
     assert "存在模板占位" in completed.stdout
 
 
+def test_review_validator_rejects_changed_file_list_mismatch(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    run("git", "switch", "-c", BRANCH, cwd=tmp_path)
+    create_valid_review_package(tmp_path)
+    changed_file = (
+        tmp_path / "docs" / "reviews" / TASK_ID / "CHANGED_FILES.md"
+    )
+    changed_file.write_text(
+        changed_file.read_text(encoding="utf-8").replace(
+            "- `docs/reviews/LATEST_REVIEW.md`\n",
+            "",
+        ),
+        encoding="utf-8",
+    )
+
+    completed = run(
+        sys.executable,
+        str(ROOT / "scripts" / "validate_review_package.py"),
+        "--task-id",
+        TASK_ID,
+        "--branch",
+        BRANCH,
+        cwd=tmp_path,
+        check=False,
+    )
+    assert completed.returncode != 0
+    assert "CHANGED_FILES.md 缺少真实变更" in completed.stdout
+    assert "docs/reviews/LATEST_REVIEW.md" in completed.stdout
+
+
 def test_safety_scanner_blocks_synthetic_token_shape(tmp_path: Path) -> None:
     initialize_repository(tmp_path)
     (tmp_path / "中文说明.md").write_text("合成测试说明\n", encoding="utf-8")
@@ -222,6 +280,107 @@ def test_safety_scanner_blocks_synthetic_token_shape(tmp_path: Path) -> None:
     assert synthetic_token not in blocked.stdout
 
 
+def test_safety_scanner_does_not_exempt_test_text_with_personal_data(
+    tmp_path: Path,
+) -> None:
+    initialize_repository(tmp_path)
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    shutil.copy2(ROOT / "scripts" / "scan_repository_safety.ps1", scripts)
+    run("git", "add", "--", "scripts/scan_repository_safety.ps1", cwd=tmp_path)
+    run("git", "commit", "-m", "add scanner", cwd=tmp_path)
+
+    phone = "138" + "0013" + "8000"
+    coordinates = "116." + "481008, 39." + "989625"
+    address = "".join(
+        chr(code)
+        for code in (
+            23458,
+            25143,
+            20179,
+            24211,
+            65306,
+            26576,
+            24066,
+            26576,
+            21306,
+            27979,
+            35797,
+            36335,
+            56,
+            56,
+            21495,
+        )
+    )
+    note = tmp_path / "tests" / "synthetic_mock_note.txt"
+    note.parent.mkdir()
+    note.write_text(
+        f"ordinary test synthetic mock text\n{phone}\n{address}\n{coordinates}\n",
+        encoding="utf-8",
+    )
+
+    blocked = run(
+        "powershell",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(scripts / "scan_repository_safety.ps1"),
+        "-BaseRef",
+        "HEAD",
+        cwd=tmp_path,
+        check=False,
+    )
+    assert blocked.returncode != 0
+    assert "手机号形态" in blocked.stdout
+    assert "完整业务地址形态" in blocked.stdout
+    assert "经纬度业务证据形态" in blocked.stdout
+    assert phone not in blocked.stdout
+    assert address not in blocked.stdout
+    assert coordinates not in blocked.stdout
+
+
+def test_safety_scanner_detects_sensitive_data_removed_from_history(
+    tmp_path: Path,
+) -> None:
+    initialize_repository(tmp_path)
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    shutil.copy2(ROOT / "scripts" / "scan_repository_safety.ps1", scripts)
+    run("git", "add", "--", "scripts/scan_repository_safety.ps1", cwd=tmp_path)
+    run("git", "commit", "-m", "add scanner", cwd=tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+
+    phone = "139" + "0013" + "8000"
+    history_note = tmp_path / "notes" / "synthetic_mock_history.txt"
+    history_note.parent.mkdir()
+    history_note.write_text(
+        f"ordinary synthetic test text\nphone={phone}\n",
+        encoding="utf-8",
+    )
+    run("git", "add", "--", "notes/synthetic_mock_history.txt", cwd=tmp_path)
+    run("git", "commit", "-m", "add unsafe history fixture", cwd=tmp_path)
+    run("git", "rm", "--", "notes/synthetic_mock_history.txt", cwd=tmp_path)
+    run("git", "commit", "-m", "remove unsafe history fixture", cwd=tmp_path)
+
+    blocked = run(
+        "powershell",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(scripts / "scan_repository_safety.ps1"),
+        "-BaseRef",
+        base_commit,
+        cwd=tmp_path,
+        check=False,
+    )
+    assert blocked.returncode != 0
+    assert "手机号形态（提交历史）" in blocked.stdout
+    assert "synthetic_mock_history.txt@" in blocked.stdout
+    assert phone not in blocked.stdout
+
+
 def test_start_task_stops_before_network_when_worktree_is_dirty(
     tmp_path: Path,
 ) -> None:
@@ -252,3 +411,98 @@ def test_start_task_stops_before_network_when_worktree_is_dirty(
     assert completed.returncode == 2
     assert "当前 Git 工作区不是干净状态" in completed.stdout
     assert "本脚本没有删除或修改任何现有文件" in completed.stdout
+
+
+def test_finalize_review_renderer_supports_non_github_flow_task(
+    tmp_path: Path,
+) -> None:
+    initialize_repository(tmp_path)
+    task_id = "TASK-OFFLINE-001"
+    branch = f"task/{task_id}-cleanup"
+    run("git", "switch", "-c", branch, cwd=tmp_path)
+
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    shutil.copy2(ROOT / "scripts" / "finalize_task.ps1", scripts)
+    review_dir = tmp_path / "docs" / "reviews" / task_id
+    review_dir.mkdir(parents=True)
+    for name in REQUIRED_REVIEW_FILES:
+        (review_dir / name).write_text("待渲染\n", encoding="utf-8")
+
+    context = {
+        "task_name": "离线术语表清理",
+        "task_goal": ["统一本地术语文档中的标题格式。"],
+        "unfinished_scope": ["不修改任何网络或 GitHub 流程。"],
+        "key_risks": ["不得把文档清理描述成业务逻辑变更。"],
+        "test_evidence_notes": ["专项验证只检查离线文档渲染结果。"],
+        "in_scope": "是；只包含模拟仓库中的文档与审核材料。",
+        "core_business_changed": "否；模拟任务没有业务代码。",
+        "request_summary": "只整理本地术语文档，不建立或修改 GitHub 流程。",
+        "acceptance_criteria": ["审核材料准确描述离线文档任务。"],
+        "known_risks": ["模拟任务不验证任何线上服务。"],
+        "uncertainties": ["无。"],
+        "task_result": {
+            "user_request": "统一离线术语表标题。",
+            "implementation": ["新增离线术语说明文件。"],
+            "not_implemented": ["未执行网络操作。"],
+            "design_tradeoffs": ["保留原有术语含义，只调整标题。"],
+            "business_rules_changed": "否。",
+            "merge_recommendation": "由模拟审核者决定。",
+        },
+        "known_issues": {
+            "known": ["无已知阻塞问题。"],
+            "deferred": ["无。"],
+            "user_impact": "只影响离线文档阅读。",
+            "blocks_merge": "否。",
+            "follow_up": ["复核标题格式。"],
+        },
+    }
+    (review_dir / "REVIEW_CONTEXT.json").write_text(
+        json.dumps(context, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    offline_note = tmp_path / "docs" / "offline_notes.md"
+    offline_note.write_text("# 离线术语说明\n", encoding="utf-8")
+    commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+
+    completed = run(
+        "powershell",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(scripts / "finalize_task.ps1"),
+        "-TaskId",
+        task_id,
+        "-CommitMessage",
+        "docs: render offline review",
+        "-PrTitle",
+        "offline review",
+        "-RenderReviewOnly",
+        "-EvidenceCommit",
+        commit,
+        "-EvidencePrUrl",
+        "https://example.invalid/review/7",
+        "-EvidencePassed",
+        "3",
+        "-EvidenceFailed",
+        "0",
+        "-EvidenceSkipped",
+        "1",
+        "-EvidencePytestSummary",
+        "3 passed, 1 skipped",
+        cwd=tmp_path,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+
+    review_index = (review_dir / "REVIEW_INDEX.md").read_text(encoding="utf-8")
+    audit_input = (review_dir / "AUDIT_INPUT.md").read_text(encoding="utf-8")
+    changed_files = (review_dir / "CHANGED_FILES.md").read_text(encoding="utf-8")
+    task_result = (review_dir / "TASK_RESULT.md").read_text(encoding="utf-8")
+    assert "离线术语表清理" in review_index
+    assert "只整理本地术语文档" in audit_input
+    assert "docs/offline_notes.md" in changed_files
+    assert "统一离线术语表标题" in task_result
+    assert "建立 Codex 自动上传与 GitHub 在线审核流程" not in audit_input
+    assert "建立任务分支、审核材料、安全扫描" not in task_result

@@ -72,7 +72,7 @@ jobs:
           if (-not $match.Success) {
             throw 'LATEST_REVIEW.md 缺少任务编号。'
           }
-          .\.venv\Scripts\python.exe scripts/validate_review_package.py --task-id $match.Groups[1].Value --branch $branch
+          .\.venv\Scripts\python.exe scripts/validate_review_package.py --task-id $match.Groups[1].Value --branch $branch --base-ref origin/master
 
       - name: Confirm no release side effects
         shell: pwsh

@@ -33,6 +33,36 @@ function Get-GitLines {
     )
 }
 
+function Test-GitHistoryPattern {
+    param(
+        [Parameter(Mandatory = $true)][string]$Commit,
+        [Parameter(Mandatory = $true)][string]$RepoPath,
+        [Parameter(Mandatory = $true)][string]$Pattern
+    )
+
+    $blobSpec = "${Commit}:$RepoPath"
+    & git cat-file -e $blobSpec *> $null
+    if ($LASTEXITCODE -ne 0) {
+        return $false
+    }
+
+    $previousPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        & git grep --quiet -I -i -E -e $Pattern $Commit -- $RepoPath *> $null
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousPreference
+    }
+    if ($exitCode -eq 0) {
+        return $true
+    }
+    if ($exitCode -eq 1) {
+        return $false
+    }
+    throw "Git 历史扫描失败：commit=$Commit path=$RepoPath"
+}
+
 function Normalize-RepoPath {
     param([string]$Path)
     $normalized = $Path -replace '\\', '/'
@@ -55,14 +85,6 @@ function Add-Finding {
         scope = $Scope
         line = $Line
     })
-}
-
-function Test-SyntheticFixture {
-    param([string]$RepoPath, [string]$Text)
-    if ($RepoPath -notmatch '^(tests|test|fixtures)/') {
-        return $false
-    }
-    return $Text -match '(?i)synthetic|fixture|mock|示例|样例|测试|虚构|合成'
 }
 
 $tracked = Get-GitLines -Arguments @('ls-files')
@@ -99,6 +121,51 @@ $secretRules = @(
     @{ Name = '疑似 32 位明文 Key'; Pattern = '(?i)(?<![0-9a-f])[0-9a-f]{32}(?![0-9a-f])' },
     @{ Name = '明文凭据赋值'; Pattern = '(?i)(?<![A-Za-z0-9_])(?:amap[_-]?)?(?:key|token|password|secret|credential)(?![A-Za-z0-9_])\s*[:=]\s*(?:["''][A-Za-z0-9_./+=-]{12,}["'']|[A-Za-z0-9_+=/-]{20,}\s*(?:#.*)?$)' }
 )
+$historyRules = @(
+    @{ Name = 'GitHub Token'; Pattern = '(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})' },
+    @{ Name = '私钥'; Pattern = '-----BEGIN (RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----' },
+    @{ Name = '疑似 32 位明文 Key'; Pattern = '(^|[^0-9A-Fa-f])[0-9A-Fa-f]{32}([^0-9A-Fa-f]|$)' },
+    @{ Name = '明文凭据赋值'; Pattern = '(amap[_-]?)?(key|token|password|secret|credential)[[:space:]]*[:=][[:space:]]*["'']?[A-Za-z0-9_./+=-]{12,}' },
+    @{ Name = '手机号形态'; Pattern = '(^|[^0-9])1[3-9][0-9]{9}([^0-9]|$)' },
+    @{ Name = '经纬度业务证据形态'; Pattern = '(^|[^0-9])(7[3-9]|8[0-9]|9[0-9]|1[0-3][0-9])\.[0-9]{4,}[[:space:]]*[,，][[:space:]]*(1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])\.[0-9]{4,}([^0-9]|$)' },
+    @{ Name = '完整业务地址形态'; Pattern = '(客户|仓库|工厂|收货|发货).{0,90}(省|市|区|县|镇|街道|路|街|大道).{0,90}(号|门|库房)' }
+)
+
+$historyCommits = @(
+    Get-GitLines -Arguments @('rev-list', "$BaseRef..HEAD")
+)
+foreach ($commit in $historyCommits) {
+    if (-not $commit) {
+        continue
+    }
+    $shortCommit = $commit.Substring(0, [Math]::Min(12, $commit.Length))
+    $historyPaths = @(
+        Get-GitLines -Arguments @(
+            'diff-tree', '--root', '-m', '--no-commit-id', '--name-only',
+            '-r', '--diff-filter=ACMR', $commit
+        ) | Sort-Object -Unique
+    )
+    foreach ($repoPath in $historyPaths) {
+        $extension = [IO.Path]::GetExtension($repoPath).ToLowerInvariant()
+        if ($extension -notin $textExtensions) {
+            continue
+        }
+        foreach ($rule in $historyRules) {
+            if (
+                $repoPath -eq 'scripts/scan_repository_safety.ps1' -and
+                $rule.Name -eq '完整业务地址形态'
+            ) {
+                continue
+            }
+            if (Test-GitHistoryPattern -Commit $commit -RepoPath $repoPath -Pattern $rule.Pattern) {
+                Add-Finding `
+                    -Rule "$($rule.Name)（提交历史）" `
+                    -Path "$repoPath@$shortCommit" `
+                    -Scope 'history'
+            }
+        }
+    }
+}
 
 foreach ($repoPath in ($allSet | Sort-Object)) {
     if (-not $repoPath) {
@@ -161,19 +228,16 @@ foreach ($repoPath in ($allSet | Sort-Object)) {
     if (-not $changedSet.Contains($repoPath) -or $repoPath -eq 'scripts/scan_repository_safety.ps1') {
         continue
     }
-    $synthetic = Test-SyntheticFixture -RepoPath $repoPath -Text $text
-    if (-not $synthetic) {
-        for ($index = 0; $index -lt $lines.Count; $index++) {
-            $line = $lines[$index]
-            if ($line -match '(?<!\d)1[3-9]\d{9}(?!\d)') {
-                Add-Finding -Rule '手机号形态' -Path $repoPath -Scope $scope -Line ($index + 1)
-            }
-            if ($line -match '(?<!\d)(?:7[3-9]|8\d|9\d|1[0-3]\d)\.\d{4,}\s*[,，]\s*(?:1\d|2\d|3\d|4\d|5\d)\.\d{4,}(?!\d)') {
-                Add-Finding -Rule '经纬度业务证据形态' -Path $repoPath -Scope $scope -Line ($index + 1)
-            }
-            if ($line -match '(?:客户|仓库|工厂|收货|发货).{0,30}(?:省|市|区|县|镇|街道|路|街|大道).{0,30}(?:号|门|库房)') {
-                Add-Finding -Rule '完整业务地址形态' -Path $repoPath -Scope $scope -Line ($index + 1)
-            }
+    for ($index = 0; $index -lt $lines.Count; $index++) {
+        $line = $lines[$index]
+        if ($line -match '(?<!\d)1[3-9]\d{9}(?!\d)') {
+            Add-Finding -Rule '手机号形态' -Path $repoPath -Scope $scope -Line ($index + 1)
+        }
+        if ($line -match '(?<!\d)(?:7[3-9]|8\d|9\d|1[0-3]\d)\.\d{4,}\s*[,，]\s*(?:1\d|2\d|3\d|4\d|5\d)\.\d{4,}(?!\d)') {
+            Add-Finding -Rule '经纬度业务证据形态' -Path $repoPath -Scope $scope -Line ($index + 1)
+        }
+        if ($line -match '(?:客户|仓库|工厂|收货|发货).{0,30}(?:省|市|区|县|镇|街道|路|街|大道).{0,30}(?:号|门|库房)') {
+            Add-Finding -Rule '完整业务地址形态' -Path $repoPath -Scope $scope -Line ($index + 1)
         }
     }
 }

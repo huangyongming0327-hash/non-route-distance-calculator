@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import re
 import subprocess
@@ -48,10 +49,45 @@ def current_branch() -> str:
     return completed.stdout.strip()
 
 
+def changed_paths(root: Path, base_ref: str) -> set[str]:
+    tracked = subprocess.run(
+        [
+            "git",
+            "diff",
+            "--name-only",
+            "--diff-filter=ACMRD",
+            base_ref,
+        ],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    untracked = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    return {
+        line.strip().replace("\\", "/")
+        for line in (tracked.stdout + "\n" + untracked.stdout).splitlines()
+        if line.strip()
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="验证任务审核材料是否完整且可交付。")
     parser.add_argument("--task-id", required=True)
     parser.add_argument("--branch", default="")
+    parser.add_argument(
+        "--base-ref",
+        default="HEAD",
+        help="用于核对 CHANGED_FILES.md 的 Git 基线，正式审核应传 origin/master。",
+    )
     parser.add_argument(
         "--allow-pending-pr",
         action="store_true",
@@ -66,6 +102,7 @@ def main() -> int:
     branch = args.branch or current_branch()
     review_dir = root / "docs" / "reviews" / args.task_id
     latest = root / "docs" / "reviews" / "LATEST_REVIEW.md"
+    context_path = review_dir / "REVIEW_CONTEXT.json"
     errors: list[str] = []
     contents: dict[str, str] = {}
 
@@ -107,6 +144,21 @@ def main() -> int:
             if pattern.search(latest_text):
                 errors.append("LATEST_REVIEW.md 仍含模板占位。")
                 break
+        if "Pull Request 当前 HEAD" not in latest_text:
+            errors.append("LATEST_REVIEW.md 未声明以 Pull Request 当前 HEAD 为审核目标。")
+
+    if not context_path.is_file():
+        errors.append("缺少审核上下文：REVIEW_CONTEXT.json")
+    else:
+        context_text = context_path.read_text(encoding="utf-8").strip()
+        try:
+            json.loads(context_text)
+        except json.JSONDecodeError:
+            errors.append("REVIEW_CONTEXT.json 不是有效 JSON。")
+        for pattern in PLACEHOLDER_PATTERNS:
+            if pattern.search(context_text):
+                errors.append("REVIEW_CONTEXT.json 仍含模板占位。")
+                break
 
     commit_evidence = "\n".join(
         (
@@ -123,8 +175,30 @@ def main() -> int:
         errors.append("TEST_REPORT.md 缺少通过数量。")
     if not re.search(r"失败[：:]\s*\d+", test_report):
         errors.append("TEST_REPORT.md 缺少失败数量。")
-    if "真实 API 调用次数" not in test_report:
-        errors.append("TEST_REPORT.md 缺少真实 API 调用次数。")
+    if "完整离线 pytest" not in test_report:
+        errors.append("TEST_REPORT.md 缺少完整离线 pytest 结果。")
+
+    changed_report = contents.get("CHANGED_FILES.md", "")
+    documented_paths = set(
+        re.findall(r"(?m)^-\s+`([^`]+)`(?:[：:].*)?$", changed_report)
+    )
+    try:
+        actual_paths = changed_paths(root, args.base_ref)
+    except subprocess.CalledProcessError:
+        errors.append(f"无法从基线 {args.base_ref} 读取真实变更文件。")
+        actual_paths = set()
+    missing_paths = sorted(actual_paths - documented_paths)
+    extra_paths = sorted(documented_paths - actual_paths)
+    if missing_paths:
+        errors.append(
+            "CHANGED_FILES.md 缺少真实变更："
+            + "、".join(missing_paths)
+        )
+    if extra_paths:
+        errors.append(
+            "CHANGED_FILES.md 包含非当前变更："
+            + "、".join(extra_paths)
+        )
 
     security_report = contents.get("SECURITY_REPORT.md", "")
     if not re.search(r"是否允许推送[：:]\s*(?:是|否)", security_report):

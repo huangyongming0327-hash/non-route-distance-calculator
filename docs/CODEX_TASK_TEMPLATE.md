@@ -62,7 +62,8 @@
 1. 先读取并遵守根目录 `AGENTS.md`。
 2. 确认工作区干净。
 3. 从最新 `origin/master` 创建 `task/<TASK-编号>-<英文简称>`。
-4. 完成后执行：
+4. 填写 `docs/reviews/<TASK-编号>/REVIEW_CONTEXT.json`，任务目标、影响、风险和合并建议不得保留模板占位，也不得由脚本猜测。
+5. 完成后执行：
 
    ```powershell
    .\scripts\finalize_task.ps1 `
@@ -71,6 +72,6 @@
      -PrTitle "<PR 标题>"
    ```
 
-5. 自动推送任务分支、创建或更新草稿 Pull Request、上传审核文件。
-6. 不自动合并，不自动发布，不移动标签。
-7. 最终只提供 PR 地址、分支、最新 Commit、Actions 结果和 `docs/reviews/LATEST_REVIEW.md`。
+6. 自动推送任务分支、创建或更新草稿 Pull Request、上传审核文件。
+7. 不自动合并，不自动发布，不移动标签。
+8. 最终只提供 PR 地址、分支、最新 Commit、Actions 结果和 `docs/reviews/LATEST_REVIEW.md`。

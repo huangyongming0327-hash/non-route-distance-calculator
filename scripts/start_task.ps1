@@ -92,7 +92,8 @@ $requiredFiles = @(
     'CHANGED_FILES.md',
     'SECURITY_REPORT.md',
     'KNOWN_ISSUES.md',
-    'AUDIT_INPUT.md'
+    'AUDIT_INPUT.md',
+    'REVIEW_CONTEXT.json'
 )
 
 foreach ($name in $requiredFiles) {

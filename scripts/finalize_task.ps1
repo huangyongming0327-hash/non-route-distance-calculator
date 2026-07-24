@@ -12,7 +12,29 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$PrTitle,
 
-    [string]$BaseBranch = 'master'
+    [string]$BaseBranch = 'master',
+
+    [string]$ReviewContextPath = '',
+
+    [switch]$RenderReviewOnly,
+
+    [string]$EvidenceCommit = '',
+
+    [string]$EvidencePrUrl = '',
+
+    [ValidateRange(0, 1000000)]
+    [int]$EvidencePassed = 0,
+
+    [ValidateRange(0, 1000000)]
+    [int]$EvidenceFailed = 0,
+
+    [ValidateRange(0, 1000000)]
+    [int]$EvidenceSkipped = 0,
+
+    [string]$EvidencePytestSummary = '',
+
+    [ValidateRange(0, 1000000)]
+    [int]$EvidenceSafetyFindingCount = 0
 )
 
 Set-StrictMode -Version Latest
@@ -45,6 +67,15 @@ $requiredReviewFiles = @(
 $reviewDir = Join-Path $repoRoot "docs\reviews\$TaskId"
 $latestReview = Join-Path $repoRoot 'docs\reviews\LATEST_REVIEW.md'
 $currentStatus = Join-Path $repoRoot 'CURRENT_STATUS.md'
+$reviewContextFile = if ($ReviewContextPath) {
+    if ([IO.Path]::IsPathRooted($ReviewContextPath)) {
+        $ReviewContextPath
+    } else {
+        Join-Path $repoRoot $ReviewContextPath
+    }
+} else {
+    Join-Path $reviewDir 'REVIEW_CONTEXT.json'
+}
 
 function Invoke-Git {
     param(
@@ -181,16 +212,114 @@ function Write-Utf8File {
     [IO.File]::WriteAllText($Path, ($Content.TrimEnd() + [Environment]::NewLine), $utf8NoBom)
 }
 
-function Get-TaskName {
-    $indexPath = Join-Path $reviewDir 'REVIEW_INDEX.md'
-    if (Test-Path -LiteralPath $indexPath) {
-        $text = [IO.File]::ReadAllText($indexPath, [Text.Encoding]::UTF8)
-        $match = [regex]::Match($text, '(?m)^-\s*任务名称[：:]\s*(.+)$')
-        if ($match.Success) {
-            return $match.Groups[1].Value.Trim()
+function Get-RequiredContextValue {
+    param(
+        [Parameter(Mandatory = $true)]$Object,
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $true)][string]$Location
+    )
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property -or $null -eq $property.Value) {
+        throw "审核上下文缺少字段：$Location.$Name"
+    }
+    $value = $property.Value
+    if ($value -is [string]) {
+        if (-not $value.Trim()) {
+            throw "审核上下文字段为空：$Location.$Name"
+        }
+        if ($value -match '\{\{[^{}]+\}\}') {
+            throw "审核上下文仍含模板占位：$Location.$Name"
+        }
+    } else {
+        $items = @($value)
+        if ($items.Count -eq 0) {
+            throw "审核上下文字段为空：$Location.$Name"
+        }
+        foreach ($item in $items) {
+            if ($item -is [string] -and (
+                -not $item.Trim() -or
+                $item -match '\{\{[^{}]+\}\}'
+            )) {
+                throw "审核上下文列表含空值或模板占位：$Location.$Name"
+            }
         }
     }
-    return $PrTitle
+    return $value
+}
+
+function ConvertTo-Markdown {
+    param([Parameter(Mandatory = $true)]$Value)
+    if ($Value -is [string]) {
+        return $Value.Trim()
+    }
+    $items = @(
+        $Value |
+            ForEach-Object { [string]$_ } |
+            Where-Object { $_.Trim() } |
+            ForEach-Object { $_.Trim() }
+    )
+    if ($items.Count -eq 0) {
+        throw '审核上下文列表不得为空。'
+    }
+    return (($items | ForEach-Object { "- $_" }) -join [Environment]::NewLine)
+}
+
+function Read-ReviewContext {
+    if (-not (Test-Path -LiteralPath $reviewContextFile -PathType Leaf)) {
+        throw "审核上下文缺失：$reviewContextFile"
+    }
+    try {
+        $context = [IO.File]::ReadAllText(
+            $reviewContextFile,
+            [Text.Encoding]::UTF8
+        ) | ConvertFrom-Json
+    } catch {
+        throw "审核上下文不是有效 JSON：$reviewContextFile"
+    }
+
+    foreach ($name in @(
+        'task_name',
+        'task_goal',
+        'unfinished_scope',
+        'key_risks',
+        'test_evidence_notes',
+        'in_scope',
+        'core_business_changed',
+        'request_summary',
+        'acceptance_criteria',
+        'known_risks',
+        'uncertainties',
+        'task_result',
+        'known_issues'
+    )) {
+        $null = Get-RequiredContextValue -Object $context -Name $name -Location 'root'
+    }
+    foreach ($name in @(
+        'user_request',
+        'implementation',
+        'not_implemented',
+        'design_tradeoffs',
+        'business_rules_changed',
+        'merge_recommendation'
+    )) {
+        $null = Get-RequiredContextValue `
+            -Object $context.task_result `
+            -Name $name `
+            -Location 'task_result'
+    }
+    foreach ($name in @(
+        'known',
+        'deferred',
+        'user_impact',
+        'blocks_merge',
+        'follow_up'
+    )) {
+        $null = Get-RequiredContextValue `
+            -Object $context.known_issues `
+            -Name $name `
+            -Location 'known_issues'
+    }
+    return $context
 }
 
 function Format-FileList {
@@ -198,7 +327,7 @@ function Format-FileList {
     if (-not $Paths -or $Paths.Count -eq 0) {
         return '- 无'
     }
-    return (($Paths | Sort-Object | ForEach-Object { "- ``$_``：属于本任务范围。" }) -join [Environment]::NewLine)
+    return (($Paths | Sort-Object | ForEach-Object { "- ``$_``" }) -join [Environment]::NewLine)
 }
 
 function Get-StatusCategories {
@@ -246,10 +375,11 @@ function Write-ReviewPackage {
         [int]$Failed,
         [int]$Skipped,
         [string]$PytestSummary,
-        [string]$TaskName
+        [Parameter(Mandatory = $true)]$TaskContext,
+        [Parameter(Mandatory = $true)]$SafetySummary,
+        [Parameter(Mandatory = $true)][string]$BaseRef
     )
 
-    $baseRef = "origin/$BaseBranch"
     $baseCommit = (Invoke-Git -Arguments @('merge-base', 'HEAD', $baseRef)).Output[0].Trim()
     $categories = Get-StatusCategories -BaseRef $baseRef
     $diffStatResult = Invoke-Git -Arguments @('diff', '--stat', $baseRef)
@@ -264,7 +394,24 @@ function Write-ReviewPackage {
     $changedList = Format-FileList -Paths $changedPaths
     $completedAt = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')
     $prDisplay = if ($PrUrl) { $PrUrl } else { '首次实现提交后由脚本创建并回写' }
-    $commitDisplay = if ($ImplementationCommit) { $ImplementationCommit } else { $baseCommit }
+    $commitDisplay = if ($ImplementationCommit) {
+        $ImplementationCommit
+    } else {
+        '待首次实现提交后回写'
+    }
+    $taskName = [string]$TaskContext.task_name
+    $taskGoal = ConvertTo-Markdown -Value $TaskContext.task_goal
+    $unfinishedScope = ConvertTo-Markdown -Value $TaskContext.unfinished_scope
+    $keyRisks = ConvertTo-Markdown -Value $TaskContext.key_risks
+    $testEvidenceNotes = ConvertTo-Markdown -Value $TaskContext.test_evidence_notes
+    $requestSummary = ConvertTo-Markdown -Value $TaskContext.request_summary
+    $acceptanceCriteria = ConvertTo-Markdown -Value $TaskContext.acceptance_criteria
+    $knownRisks = ConvertTo-Markdown -Value $TaskContext.known_risks
+    $uncertainties = ConvertTo-Markdown -Value $TaskContext.uncertainties
+    $taskImplementation = ConvertTo-Markdown -Value $TaskContext.task_result.implementation
+    $safetyFindings = [int]$SafetySummary.finding_count
+    $safetyAllowed = [bool]$SafetySummary.allowed_to_push
+    $safetyDecision = if ($safetyAllowed -and $safetyFindings -eq 0) { '是' } else { '否' }
 
     $reviewIndex = @"
 # $TaskId 审核首页
@@ -273,12 +420,13 @@ function Write-ReviewPackage {
 - 任务分支：``$branch``
 - 基础分支：``$BaseBranch``
 - 基础 Commit：``$baseCommit``
-- 实现 Commit：``$commitDisplay``
+- 审核目标：Pull Request 当前 HEAD
+- 生成证据 Commit：``$commitDisplay``
 - Pull Request：$prDisplay
 
 ## 任务目标
 
-完成 $TaskName，并建立可重复执行的分支、测试、安全扫描、审核材料、推送和 Pull Request 流程。
+$taskGoal
 
 ## 实际完成范围
 
@@ -286,9 +434,7 @@ $changedList
 
 ## 未完成范围
 
-- 未自动合并 Pull Request。
-- 未创建或移动标签。
-- 未创建 GitHub Release 或新正式版本。
+$unfinishedScope
 
 ## 审核材料入口
 
@@ -301,8 +447,7 @@ $changedList
 
 ## 重点风险
 
-- 请重点确认自动化脚本的失败即停止、分支保护和显式暂存边界。
-- 请确认 GitHub Actions 只执行离线验证。
+$keyRisks
 
 ## 推荐审核顺序
 
@@ -337,19 +482,14 @@ $pythonDisplay scripts/validate_review_package.py --task-id "$TaskId" --branch "
 - 失败：$Failed
 - 跳过：$Skipped
 - 完整离线 pytest：$PytestSummary
-- 专项测试：随完整离线 pytest 一并执行审核流程专项测试。
-- Excel 测试：离线单元测试执行；未运行真实 Excel COM。
-- WPS 测试：离线单元测试执行；未运行真实 WPS COM。
-- 真实 API 调用次数：0
 
-## 未执行测试及原因
+## 任务提供的验证说明
 
-- 未执行真实 Excel/WPS COM：本任务只建立开发与审核流程，且 GitHub Actions 禁止运行真实 Office COM。
-- 未执行真实高德 API：任务明确要求离线验证。
+$testEvidenceNotes
 
 ## 失败或警告
 
-- 自动化命令失败数为 0。
+- 本地自动化失败数：$Failed
 - GitHub Actions 结果在 Pull Request 创建后以 Checks 页面为准。
 "@
     Write-Utf8File -Path (Join-Path $reviewDir 'TEST_REPORT.md') -Content $testReport
@@ -378,8 +518,8 @@ $diffStat
 
 ## 范围与核心业务
 
-- 所有变更是否属于任务范围：是。
-- 是否修改核心业务文件：否；任务只涉及开发流程、测试、GitHub 配置和文档。
+- 所有变更是否属于任务范围：$($TaskContext.in_scope)
+- 是否修改核心业务文件：$($TaskContext.core_business_changed)
 "@
     Write-Utf8File -Path (Join-Path $reviewDir 'CHANGED_FILES.md') -Content $changedFiles
 
@@ -391,26 +531,20 @@ $diffStat
 
 ## 扫描结果
 
-- Key 扫描：0 命中。
-- Token 和凭据扫描：0 命中。
-- 业务 Excel 扫描：0 命中；仅保留仓库原有合成 ``tests/fixtures/*.xlsm``。
-- 地址、手机号和经纬度扫描：当前差异 0 命中。
-- 数据库、缓存和日志扫描：0 命中。
-- EXE、ZIP、release 扫描：0 命中。
-- 大于 50 MiB 文件扫描：0 命中。
+- 扫描文件数：$($SafetySummary.scanned_file_count)
+- 当前差异文件数：$($SafetySummary.changed_file_count)
+- 当前内容及分支提交历史命中数：$safetyFindings
+- 扫描基线：``$($SafetySummary.base_ref)``
 
 ## 推送结论
 
-是否允许推送：是。
+是否允许推送：$safetyDecision。
 
 扫描器只记录规则、文件和行号，不显示完整敏感值。公开仓库禁止上传任何业务数据或凭据。
 "@
     Write-Utf8File -Path (Join-Path $reviewDir 'SECURITY_REPORT.md') -Content $securityReport
 
-    $taskResultPath = Join-Path $reviewDir 'TASK_RESULT.md'
-    $taskResultText = [IO.File]::ReadAllText($taskResultPath, [Text.Encoding]::UTF8)
-    if ($taskResultText -match '\{\{[^{}]+\}\}') {
-        $taskResult = @"
+    $taskResult = @"
 # $TaskId 任务结果
 
 - 任务名称：$TaskName
@@ -418,38 +552,35 @@ $diffStat
 
 ## 用户原始需求
 
-建立任务分支、离线测试、安全扫描、完整审核材料、GitHub 推送和 Pull Request 在线审核流程。
+$($TaskContext.task_result.user_request)
 
 ## 实际实现
 
-$changedList
+$taskImplementation
 
 ## 未实现内容
 
-- 未自动合并 Pull Request。
-- 未创建正式版本、标签或 Release。
+$(
+    ConvertTo-Markdown -Value $TaskContext.task_result.not_implemented
+)
 
 ## 设计取舍
 
-- Pull Request 默认创建为草稿，保留用户和总指挥独立审核环节。
-- 只显式暂存本任务允许的路径，不使用 ``git add -A``。
-- 任何测试、安全扫描或审核材料检查失败都会停止。
+$(
+    ConvertTo-Markdown -Value $TaskContext.task_result.design_tradeoffs
+)
 
 ## 业务口径
 
-是否修改既有业务口径：否。
+是否修改既有业务口径：$($TaskContext.task_result.business_rules_changed)
 
 ## 合并建议
 
-待 GitHub Actions 成功并由总指挥独立审核后再决定，脚本不自动合并。
+$($TaskContext.task_result.merge_recommendation)
 "@
-        Write-Utf8File -Path $taskResultPath -Content $taskResult
-    }
+    Write-Utf8File -Path (Join-Path $reviewDir 'TASK_RESULT.md') -Content $taskResult
 
-    $knownIssuesPath = Join-Path $reviewDir 'KNOWN_ISSUES.md'
-    $knownIssuesText = [IO.File]::ReadAllText($knownIssuesPath, [Text.Encoding]::UTF8)
-    if ($knownIssuesText -match '\{\{[^{}]+\}\}') {
-        $knownIssues = @"
+    $knownIssues = @"
 # $TaskId 已知问题
 
 - 任务名称：$TaskName
@@ -457,26 +588,31 @@ $changedList
 
 ## 已知问题
 
-未发现已知阻塞问题。
+$(
+    ConvertTo-Markdown -Value $TaskContext.known_issues.known
+)
 
 ## 暂缓问题
 
-- master 严格分支保护暂不自动启用，需在本 PR 的检查名称稳定后由用户决定。
+$(
+    ConvertTo-Markdown -Value $TaskContext.known_issues.deferred
+)
 
 ## 用户影响
 
-- 不影响现有运距计算程序；本任务只改变后续开发、测试与审核流程。
+$($TaskContext.known_issues.user_impact)
 
 ## 是否阻止合并
 
-- 当前未发现阻止合并的问题；最终结论由总指挥审核。
+$($TaskContext.known_issues.blocks_merge)
 
 ## 后续建议
 
-- 本 PR 的 GitHub Actions 成功后，按分支保护指南在网页端配置 master。
+$(
+    ConvertTo-Markdown -Value $TaskContext.known_issues.follow_up
+)
 "@
-        Write-Utf8File -Path $knownIssuesPath -Content $knownIssues
-    }
+    Write-Utf8File -Path (Join-Path $reviewDir 'KNOWN_ISSUES.md') -Content $knownIssues
 
     $auditInput = @"
 # $TaskId 独立审核输入
@@ -485,17 +621,16 @@ $changedList
 - 任务分支：``$branch``
 - 修改前 Commit：``$baseCommit``
 - 修改后实现 Commit：``$commitDisplay``
+- 审核目标：Pull Request 当前 HEAD
 - Pull Request：$prDisplay
 
 ## 用户需求原文摘要
 
-建立 Codex 自动上传与 GitHub 在线审核流程；每个任务从最新 master 建分支，完成测试、安全扫描、审核材料、提交、推送和 PR，禁止自动合并、发布、移动标签或上传业务数据。
+$requestSummary
 
 ## 验收标准
 
-- 分支、模板、脚本、GitHub 模板和离线 Actions 齐全。
-- 完整离线测试、专项测试、编译检查、差异检查、安全扫描和审核材料检查实际通过。
-- 任务分支已推送，PR 地址回写，PR 未合并。
+$acceptanceCriteria
 
 ## git diff 统计
 
@@ -510,25 +645,19 @@ $changedList
 - ``$pythonDisplay -m pytest -q``：$PytestSummary
 - ``$pythonDisplay -m compileall -q src scripts tests``：通过。
 - ``git diff --check``：通过。
-- 安全扫描：0 命中。
-- 真实 API 调用次数：0。
+- 安全扫描：$safetyFindings 命中。
 
 ## 已知风险
 
-- PowerShell 脚本主要面向 Windows、Git 和 GitHub CLI 环境。
-- GitHub Actions 检查名称应在首次运行成功后再用于分支保护。
+$knownRisks
 
 ## 重点检查路径
 
-- ``scripts/start_task.ps1``
-- ``scripts/finalize_task.ps1``
-- ``scripts/scan_repository_safety.ps1``
-- ``scripts/validate_review_package.py``
-- ``.github/workflows/pr-validation.yml``
+$changedList
 
 ## Codex 最不确定的地方
 
-- 不同 GitHub 账号或企业策略下，草稿 PR 和分支保护设置的网页选项可能略有差异。
+$uncertainties
 
 本文件只提供独立审核证据，不声明审核结论；最终是否通过由总指挥判断。
 "@
@@ -544,7 +673,8 @@ $changedList
 - 基础分支：``$BaseBranch``
 - Pull Request 编号：$(if ($PrUrl -match '/pull/(\d+)') { $Matches[1] } else { '首次提交后回写' })
 - Pull Request 网页地址：$prDisplay
-- 最新审核范围 Commit Hash：``$commitDisplay``
+- 审核目标：Pull Request 当前 HEAD
+- 生成证据 Commit Hash：``$commitDisplay``
 - 完成时间：$completedAt
 - 是否已经合并：否
 
@@ -564,11 +694,7 @@ $changedList
 - 自动测试通过数：$Passed
 - 失败数：$Failed
 - 跳过数：$Skipped
-- 专项测试：通过
-- Excel 测试：离线单元测试通过；未运行真实 COM
-- WPS 测试：离线单元测试通过；未运行真实 COM
-- 真实 API 调用次数：0
-- 敏感扫描结果：0 命中
+- 敏感扫描结果：$safetyFindings 命中
 - GitHub Actions 结果：已触发，以 Pull Request Checks 页面最终结果为准
 
 ## 需要总指挥重点审核
@@ -586,27 +712,25 @@ $changedList
     Write-Utf8File -Path $latestReview -Content $latest
 
     $status = @"
-# 当前状态：V1.0 稳定，$TaskId 待审核
+# 当前状态：$TaskId 待审核
 
 更新日期：$((Get-Date).ToString('yyyy-MM-dd'))
 
-## 正式版本与稳定分支
+## 基础分支与审核范围
 
-- 当前正式版本：V1.0。
-- 最新稳定 master：``$baseCommit``。
-- GitHub 仓库状态：Public。
-- 公开仓库禁止上传任何业务数据、完整地址、工作簿、缓存、日志、凭据、Key 或 Token。
-- ``v1.0`` 标签未移动，未创建新正式版本或 Release。
+- 基础分支：``$BaseBranch``。
+- 基础 Commit：``$baseCommit``。
+- ``finalize_task.ps1`` 不执行合并、标签移动或 Release 创建。
 
 ## 最新待审核任务
 
 - 任务：$TaskId — $TaskName。
 - 任务分支：``$branch``。
 - Pull Request：$prDisplay
-- 审核范围 Commit：``$commitDisplay``。
+- 审核目标：Pull Request 当前 HEAD。
+- 生成证据 Commit：``$commitDisplay``。
 - 固定审核入口：``docs/reviews/LATEST_REVIEW.md``。
 - 测试摘要：$Passed passed，$Failed failed，$Skipped skipped；编译、差异和安全扫描通过。
-- 真实 API 调用次数：0。
 
 ## 合并状态
 
@@ -634,6 +758,46 @@ foreach ($name in $requiredReviewFiles) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "任务审核文件缺失：docs/reviews/$TaskId/$name"
     }
+}
+
+$reviewContext = Read-ReviewContext
+$taskName = [string]$reviewContext.task_name
+
+if ($RenderReviewOnly) {
+    $renderCommit = if ($EvidenceCommit) {
+        $EvidenceCommit
+    } else {
+        (Invoke-Git -Arguments @('rev-parse', 'HEAD')).Output[0].Trim()
+    }
+    $renderPrUrl = if ($EvidencePrUrl) {
+        $EvidencePrUrl
+    } else {
+        '未提供（仅渲染验证）'
+    }
+    $renderPytestSummary = if ($EvidencePytestSummary) {
+        $EvidencePytestSummary
+    } else {
+        "$EvidencePassed passed, $EvidenceFailed failed, $EvidenceSkipped skipped"
+    }
+    $renderSafetySummary = [pscustomobject]@{
+        base_ref = $BaseBranch
+        scanned_file_count = (Invoke-Git -Arguments @('ls-files')).Output.Count
+        changed_file_count = (Get-BaseChangedPaths -Ref $BaseBranch).Count
+        finding_count = $EvidenceSafetyFindingCount
+        allowed_to_push = ($EvidenceSafetyFindingCount -eq 0)
+    }
+    Write-ReviewPackage `
+        -ImplementationCommit $renderCommit `
+        -PrUrl $renderPrUrl `
+        -Passed $EvidencePassed `
+        -Failed $EvidenceFailed `
+        -Skipped $EvidenceSkipped `
+        -PytestSummary $renderPytestSummary `
+        -TaskContext $reviewContext `
+        -SafetySummary $renderSafetySummary `
+        -BaseRef $BaseBranch
+    Write-Host "审核材料渲染完成：docs/reviews/$TaskId/"
+    exit 0
 }
 
 $originResult = Invoke-Git -Arguments @('remote', 'get-url', 'origin')
@@ -678,7 +842,13 @@ $null = Invoke-CheckedCommand -Label '敏感信息和禁止路径扫描' -Comman
     & (Join-Path $PSScriptRoot 'scan_repository_safety.ps1') -BaseRef "origin/$BaseBranch" -ReportPath $safetyReport
 }
 
-$taskName = Get-TaskName
+$safetySummary = [IO.File]::ReadAllText(
+    $safetyReport,
+    [Text.Encoding]::UTF8
+) | ConvertFrom-Json
+if (-not [bool]$safetySummary.allowed_to_push -or [int]$safetySummary.finding_count -ne 0) {
+    throw '安全报告不允许推送，拒绝生成通过结论。'
+}
 Write-ReviewPackage `
     -ImplementationCommit '' `
     -PrUrl '' `
@@ -686,10 +856,16 @@ Write-ReviewPackage `
     -Failed $failed `
     -Skipped $skipped `
     -PytestSummary $pytestSummary `
-    -TaskName $taskName
+    -TaskContext $reviewContext `
+    -SafetySummary $safetySummary `
+    -BaseRef "origin/$BaseBranch"
 
 $null = Invoke-CheckedCommand -Label '审核材料首次完整性检查' -Command {
-    & $python scripts/validate_review_package.py --task-id $TaskId --branch $branch --allow-pending-pr
+    & $python scripts/validate_review_package.py `
+        --task-id $TaskId `
+        --branch $branch `
+        --base-ref "origin/$BaseBranch" `
+        --allow-pending-pr
 }
 $null = Invoke-CheckedCommand -Label '生成审核材料后的安全复检' -Command {
     & (Join-Path $PSScriptRoot 'scan_repository_safety.ps1') -BaseRef "origin/$BaseBranch"
@@ -717,27 +893,28 @@ $implementationCommit = (Invoke-Git -Arguments @('rev-parse', 'HEAD')).Output[0]
 $null = Invoke-Git -Arguments @('push', '-u', 'origin', $branch)
 
 $prBodyPath = Join-Path $env:TEMP "$($TaskId.ToLowerInvariant())-pr-body.md"
+$prChanges = ConvertTo-Markdown -Value $reviewContext.task_result.implementation
+$prReason = ConvertTo-Markdown -Value $reviewContext.request_summary
+$prImpact = [string]$reviewContext.known_issues.user_impact
 $prBody = @"
 ## 变更内容
 
-- 建立任务分支、审核材料、安全扫描、完整性验证和 GitHub 在线审核流程。
-- 增加 Issue、Pull Request 模板与 Windows 离线验证工作流。
-- 更新公开仓库状态和固定审核入口。
+$prChanges
 
 ## 原因
 
-让后续 Codex 任务从最新 master 独立开发，经过可复核的测试与安全门禁后再进入人工审核。
+$prReason
 
 ## 影响
 
-不修改既有运距计算业务规则，不调用真实高德 API，不自动合并或发布。
+$prImpact
 
 ## 验证
 
 - $pytestSummary
 - Python compileall：通过
 - git diff --check：通过
-- 安全扫描：0 命中
+- 安全扫描：$($safetySummary.finding_count) 命中
 - 审核材料完整性检查：通过
 
 审核入口：``docs/reviews/LATEST_REVIEW.md``
@@ -790,10 +967,15 @@ Write-ReviewPackage `
     -Failed $failed `
     -Skipped $skipped `
     -PytestSummary $pytestSummary `
-    -TaskName $taskName
+    -TaskContext $reviewContext `
+    -SafetySummary $safetySummary `
+    -BaseRef "origin/$BaseBranch"
 
 $null = Invoke-CheckedCommand -Label 'PR 回写后的审核材料检查' -Command {
-    & $python scripts/validate_review_package.py --task-id $TaskId --branch $branch
+    & $python scripts/validate_review_package.py `
+        --task-id $TaskId `
+        --branch $branch `
+        --base-ref "origin/$BaseBranch"
 }
 $null = Invoke-CheckedCommand -Label 'PR 回写后的安全复检' -Command {
     & (Join-Path $PSScriptRoot 'scan_repository_safety.ps1') -BaseRef "origin/$BaseBranch"
