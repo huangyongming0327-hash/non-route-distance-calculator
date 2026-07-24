@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import time
 from pathlib import Path
 from unittest.mock import patch
@@ -137,16 +138,21 @@ def test_output_permission_slow_disk_times_out_without_blocking_wait(tmp_path: P
     worker = OutputPermissionWorker(1, str(tmp_path), logger, timeout_seconds=0.03)
     result: list[tuple[int, str, str]] = []
     worker.finished.connect(lambda *values: result.append(values))
+    probe_started = threading.Event()
+    release_probe = threading.Event()
 
     def slow_probe() -> tuple[str, str]:
-        time.sleep(0.2)
+        probe_started.set()
+        release_probe.wait(timeout=2)
         return "writable", "可写"
 
     worker._probe = slow_probe  # type: ignore[method-assign]
-    started = time.perf_counter()
-    worker.run()
-    assert time.perf_counter() - started < 0.15
-    assert result[0][1] == "timeout"
+    try:
+        worker.run()
+        assert probe_started.is_set()
+        assert result[0][1] == "timeout"
+    finally:
+        release_probe.set()
 
 
 def _wait_until(app: QApplication, predicate, timeout_ms: int = 5_000) -> None:

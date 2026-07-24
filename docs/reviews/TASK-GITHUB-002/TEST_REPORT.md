@@ -40,5 +40,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safe
 - 修复方式：工作流固定 Python UTF-8，并让制品检查只检查 Git 会上传的文件，排除 CI 自身的 `.venv`。
 - GitHub Actions 第四次运行 `30105078932`：199 passed，11 skipped；编译、差异、安全扫描、审核材料和禁止发布制品检查全部通过。
 - CI 比本机多跳过 7 项依赖私有业务样表的测试；样表按安全规则未上传。
-- 当前结果：GitHub Actions 通过。
+- GitHub Actions 第五次运行 `30105329617`：共享运行器调度抖动触发既有 `0.15` 秒墙钟断言，1 项失败；业务代码与第四次绿色提交相同。
+- 修复方式：用事件同步直接验证慢探针仍阻塞时 worker 返回 `timeout`，不再依赖 CI 机器瞬时速度。
+- 当前结果：测试稳定性修复已完成，等待最终复跑。
 - 运行地址：https://github.com/huangyongming0327-hash/non-route-distance-calculator/actions/runs/30105078932

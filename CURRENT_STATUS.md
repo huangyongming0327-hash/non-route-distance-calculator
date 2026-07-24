@@ -18,7 +18,7 @@
 - 审核范围 Commit：`af2a739ccd358e7f4bc39398339d317729854b77`。
 - 固定审核入口：`docs/reviews/LATEST_REVIEW.md`。
 - 测试摘要：206 passed，0 failed，4 skipped；编译、差异和安全扫描通过。
-- GitHub Actions：Windows offline validation 已通过（运行 `30105078932`）。
+- GitHub Actions：功能检查曾完整通过；计时测试稳定性已修复，等待最终复跑。
 - 真实 API 调用次数：0。
 
 ## 合并状态

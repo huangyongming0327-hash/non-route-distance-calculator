@@ -32,7 +32,7 @@
 - WPS 测试：离线单元测试通过；未运行真实 COM
 - 真实 API 调用次数：0
 - 敏感扫描结果：0 命中
-- GitHub Actions 结果：通过（Windows offline validation，运行 `30105078932`）
+- GitHub Actions 结果：功能检查曾完整通过；计时测试稳定性已修复，等待最终复跑
 
 ## 需要总指挥重点审核
 
