@@ -71,7 +71,7 @@
  docs/reviews/TASK-GITHUB-002/AUDIT_INPUT.md      |  165 ++++
  docs/reviews/TASK-GITHUB-002/CHANGED_FILES.md    |  101 +++
  docs/reviews/TASK-GITHUB-002/KNOWN_ISSUES.md     |   25 +
- docs/reviews/TASK-GITHUB-002/REVIEW_CONTEXT.json |   79 ++
+ docs/reviews/TASK-GITHUB-002/REVIEW_CONTEXT.json |   78 ++
  docs/reviews/TASK-GITHUB-002/REVIEW_INDEX.md     |   88 ++
  docs/reviews/TASK-GITHUB-002/SECURITY_REPORT.md  |   17 +
  docs/reviews/TASK-GITHUB-002/TASK_RESULT.md      |   36 +
@@ -84,7 +84,7 @@
  docs/reviews/TASK_TEMPLATE/SECURITY_REPORT.md    |   20 +
  docs/reviews/TASK_TEMPLATE/TASK_RESULT.md        |   28 +
  docs/reviews/TASK_TEMPLATE/TEST_REPORT.md        |   26 +
- scripts/finalize_task.ps1                        | 1019 ++++++++++++++++++++++
+ scripts/finalize_task.ps1                        | 1026 ++++++++++++++++++++++
  scripts/scan_repository_safety.ps1               |  284 ++++++
  scripts/start_task.ps1                           |  126 +++
  scripts/validate_review_package.py               |  238 +++++
@@ -92,7 +92,7 @@
  tests/test_review_workflow.py                    |  508 +++++++++++
  tests/test_task007a_performance.py               |   18 +-
  tests/test_ui_smoke.py                           |    2 +-
- 38 files changed, 3556 insertions(+), 55 deletions(-)
+ 38 files changed, 3562 insertions(+), 55 deletions(-)
 ```
 
 ## 范围与核心业务

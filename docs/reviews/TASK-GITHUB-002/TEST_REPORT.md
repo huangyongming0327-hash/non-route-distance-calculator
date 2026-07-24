@@ -18,7 +18,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safe
 - 通过：210
 - 失败：0
 - 跳过：4
-- 完整离线 pytest：210 passed, 4 skipped in 24.47s
+- 完整离线 pytest：210 passed, 4 skipped in 22.07s
 
 ## 任务提供的验证说明
 
@@ -29,4 +29,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safe
 ## 失败或警告
 
 - 本地自动化失败数：0
-- GitHub Actions 结果在 Pull Request 创建后以 Checks 页面为准。
+- GitHub Actions：通过（Windows offline validation，运行 30117277977）

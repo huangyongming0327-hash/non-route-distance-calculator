@@ -8,8 +8,8 @@
 - Pull Request 编号：1
 - Pull Request 网页地址：https://github.com/huangyongming0327-hash/non-route-distance-calculator/pull/1
 - 审核目标：Pull Request 当前 HEAD
-- 生成证据 Commit Hash：`c538fffccf532c5ece6353861bee5407287b08bd`
-- 完成时间：2026-07-25 01:13:49 +08:00
+- 生成证据 Commit Hash：`63fd9c2113854bd218fa5207e72595b82756df42`
+- 完成时间：2026-07-25 02:34:48 +08:00
 - 是否已经合并：否
 
 ## 审核材料入口
@@ -29,7 +29,7 @@
 - 失败数：0
 - 跳过数：4
 - 敏感扫描结果：0 命中
-- GitHub Actions 结果：已触发，以 Pull Request Checks 页面最终结果为准
+- GitHub Actions 结果：通过（Windows offline validation，运行 30117277977）
 
 ## 需要总指挥重点审核
 
