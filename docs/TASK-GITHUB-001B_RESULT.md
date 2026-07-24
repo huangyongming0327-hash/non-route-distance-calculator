@@ -9,7 +9,7 @@ GitHub V1.0 正式下载页面已经创建成功。Release 使用原有 `v1.0` �
 ## Release 信息
 
 - GitHub 仓库：<https://github.com/huangyongming0327-hash/non-route-distance-calculator>
-- 仓库可见性：Private。
+- 仓库可见性：本次 Release 创建时为 Private，后续已改为 Public。
 - Release 标题：非线路运距计算工具 V1.0
 - Release 网页：<https://github.com/huangyongming0327-hash/non-route-distance-calculator/releases/tag/v1.0>
 - 使用标签：`v1.0`
@@ -54,7 +54,7 @@ Release 附件不会进入 Git 提交历史。远程 `master` 中仍不存在 EX
 
 ## 普通用户如何下载
 
-由于仓库是 Private，使用者需要先登录有访问权限的 GitHub 账号，然后：
+本段记录 Release 创建时仓库为 Private 的下载步骤；仓库后续已改为 Public。当前使用者可直接打开 Release 页面，然后：
 
 1. 打开 Release 网页。
 2. 在 Assets 区域点击 `非线路运距计算工具_V1.0_便携版.zip`。

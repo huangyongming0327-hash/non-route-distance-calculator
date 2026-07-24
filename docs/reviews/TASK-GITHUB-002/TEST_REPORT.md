@@ -1,0 +1,35 @@
+# TASK-GITHUB-002 测试报告
+
+- 任务名称：建立自动上传与在线审核流程
+- 任务分支：`task/TASK-GITHUB-002-review-workflow`
+
+## 实际执行命令
+
+`powershell
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m compileall -q src scripts tests
+git diff --check
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safety.ps1
+.\.venv\Scripts\python.exe scripts/validate_review_package.py --task-id "TASK-GITHUB-002" --branch "task/TASK-GITHUB-002-review-workflow"
+`
+
+## 结果摘要
+
+- 通过：206
+- 失败：0
+- 跳过：4
+- 完整离线 pytest：206 passed, 4 skipped in 15.91s
+- 专项测试：随完整离线 pytest 一并执行审核流程专项测试。
+- Excel 测试：离线单元测试执行；未运行真实 Excel COM。
+- WPS 测试：离线单元测试执行；未运行真实 WPS COM。
+- 真实 API 调用次数：0
+
+## 未执行测试及原因
+
+- 未执行真实 Excel/WPS COM：本任务只建立开发与审核流程，且 GitHub Actions 禁止运行真实 Office COM。
+- 未执行真实高德 API：任务明确要求离线验证。
+
+## 失败或警告
+
+- 自动化命令失败数为 0。
+- GitHub Actions 结果在 Pull Request 创建后以 Checks 页面为准。

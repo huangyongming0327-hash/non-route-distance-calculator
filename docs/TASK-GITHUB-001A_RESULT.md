@@ -4,12 +4,12 @@
 
 ## 一句话结论
 
-项目的清理后安全历史已经成功上传到 GitHub 私有仓库。`master` 已作为默认分支，并代表当前最新稳定 V1.0。没有上传 EXE、ZIP、业务数据或含敏感历史的本地 Bundle。
+项目的清理后安全历史当时已经成功上传到 GitHub 私有仓库。仓库后续已改为 Public；本段保留首次推送时的历史事实。`master` 已作为默认分支，并代表当前最新稳定 V1.0。没有上传 EXE、ZIP、业务数据或含敏感历史的本地 Bundle。
 
 ## GitHub 仓库
 
 - 仓库网页：<https://github.com/huangyongming0327-hash/non-route-distance-calculator>
-- 仓库可见性：Private，仅获得权限的账号可访问。
+- 仓库可见性：首次推送时为 Private，后续已改为 Public。
 - 登录账号：`huangyongming0327-hash`
 - 本地远程名称：`origin`
 - 远程地址：`https://github.com/huangyongming0327-hash/non-route-distance-calculator.git`
@@ -63,7 +63,7 @@
 
 ## GitHub 远程验证
 
-- GitHub 确认为 Private 仓库。
+- 首次推送验证时 GitHub 确认为 Private 仓库；后续已改为 Public。
 - `master`、`release/v1.0` 和两个历史分支均可见。
 - 4 个标签均可见，`v1.0` 指向 `4075063ff8c0425715bbedbf70b6ffc10dd4ca9e`。
 - `README.md`、`src`、`tests`、`scripts`、`docs`、`CURRENT_STATUS.md`、`CHANGELOG.md`、`KNOWN_ISSUES.md`、`VERSION.txt` 和 `.gitignore` 均可从远程完整克隆。

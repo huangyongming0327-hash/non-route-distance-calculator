@@ -1,0 +1,81 @@
+name: PR Offline Validation
+
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-validation:
+    name: Windows offline validation
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      RUN_OFFICE_TESTS: "0"
+      AMAP_API_KEY: ""
+      AMAP_KEY: ""
+      PYTHONDONTWRITEBYTECODE: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements/requirements-lock.txt
+
+      - name: Install locked dependencies
+        shell: pwsh
+        run: python -m pip install -r requirements/requirements-lock.txt
+
+      - name: Run complete offline pytest
+        shell: pwsh
+        run: python -m pytest -q
+
+      - name: Compile Python sources
+        shell: pwsh
+        run: python -m compileall -q src scripts tests
+
+      - name: Check diff whitespace
+        shell: pwsh
+        run: |
+          git diff --check origin/master...HEAD
+          git diff --check
+
+      - name: Scan repository safety
+        shell: pwsh
+        run: >
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File scripts/scan_repository_safety.ps1
+          -BaseRef origin/master
+
+      - name: Validate review package
+        shell: pwsh
+        run: |
+          $branch = "${{ github.head_ref }}"
+          $latest = Get-Content -Raw -Encoding UTF8 docs/reviews/LATEST_REVIEW.md
+          $match = [regex]::Match($latest, '(?m)^-\s*任务编号[：:]\s*(\S+)\s*$')
+          if (-not $match.Success) {
+            throw 'LATEST_REVIEW.md 缺少任务编号。'
+          }
+          python scripts/validate_review_package.py --task-id $match.Groups[1].Value --branch $branch
+
+      - name: Confirm no release side effects
+        shell: pwsh
+        run: |
+          if (Test-Path release) {
+            throw '离线验证不得产生 release 目录。'
+          }
+          if (Get-ChildItem -Recurse -File -Include *.exe,*.zip -ErrorAction SilentlyContinue) {
+            throw '离线验证不得产生 EXE 或 ZIP。'
+          }

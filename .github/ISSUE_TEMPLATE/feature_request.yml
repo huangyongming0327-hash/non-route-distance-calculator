@@ -1,0 +1,71 @@
+name: 功能需求
+description: 提交新功能建议，不包含真实业务数据。
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请只使用合成示例。禁止上传业务 Excel、完整地址、Key、Token、凭据、地址库、缓存或日志。
+  - type: textarea
+    id: background
+    attributes:
+      label: 业务背景
+      description: 说明场景和问题，不要包含客户名称或完整地址。
+    validations:
+      required: true
+  - type: textarea
+    id: current_method
+    attributes:
+      label: 当前做法
+    validations:
+      required: true
+  - type: textarea
+    id: desired_feature
+    attributes:
+      label: 希望功能
+    validations:
+      required: true
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: 使用频率
+      options:
+        - 每天
+        - 每周
+        - 每月
+        - 偶尔
+    validations:
+      required: true
+  - type: textarea
+    id: input_output
+    attributes:
+      label: 输入与输出
+      description: 使用虚构字段或合成示例说明。
+    validations:
+      required: true
+  - type: dropdown
+    id: excel_format
+    attributes:
+      label: 是否影响 Excel 格式
+      options:
+        - 不影响
+        - 可能影响
+        - 确定影响
+        - 不确定
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收标准
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: 安全确认
+      options:
+        - label: 我确认内容仅含合成示例，不含业务数据或凭据。
+          required: true
