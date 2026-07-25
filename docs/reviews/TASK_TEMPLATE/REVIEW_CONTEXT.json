@@ -24,6 +24,7 @@
   "uncertainties": [
     "{{UNCERTAINTIES}}"
   ],
+  "actions_status": "以Pull Request当前HEAD对应的Checks页面为准。",
   "task_result": {
     "user_request": "{{USER_REQUEST}}",
     "implementation": [

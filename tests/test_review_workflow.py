@@ -49,6 +49,35 @@ def initialize_repository(path: Path) -> None:
     run("git", "commit", "-m", "test baseline", cwd=path)
 
 
+def install_safety_scanner(path: Path) -> Path:
+    scripts = path / "scripts"
+    scripts.mkdir(exist_ok=True)
+    scanner = scripts / "scan_repository_safety.ps1"
+    shutil.copy2(ROOT / "scripts" / "scan_repository_safety.ps1", scanner)
+    run("git", "add", "--", "scripts/scan_repository_safety.ps1", cwd=path)
+    run("git", "commit", "-m", "add scanner", cwd=path)
+    return scanner
+
+
+def run_safety_scanner(
+    path: Path,
+    scanner: Path,
+    base_ref: str,
+) -> subprocess.CompletedProcess[str]:
+    return run(
+        "powershell",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(scanner),
+        "-BaseRef",
+        base_ref,
+        cwd=path,
+        check=False,
+    )
+
+
 def create_valid_review_package(path: Path) -> None:
     review_dir = path / "docs" / "reviews" / TASK_ID
     review_dir.mkdir(parents=True)
@@ -377,8 +406,109 @@ def test_safety_scanner_detects_sensitive_data_removed_from_history(
     )
     assert blocked.returncode != 0
     assert "手机号形态（提交历史）" in blocked.stdout
-    assert "synthetic_mock_history.txt@" in blocked.stdout
+    assert "synthetic_mock_history.txt" in blocked.stdout
+    assert re.search(r"Commit=[0-9a-f]{12}", blocked.stdout)
     assert phone not in blocked.stdout
+
+
+def test_safety_scanner_blocks_new_png(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    (tmp_path / "screenshot.png").write_bytes(b"\x89PNG\r\n\x1a\nsynthetic")
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "未经授权的二进制图片或 PDF" in blocked.stdout
+    assert "screenshot.png" in blocked.stdout
+    assert "二进制图片或PDF无法自动确认是否已脱敏" in blocked.stdout
+    assert "普通开发任务禁止提交" in blocked.stdout
+
+
+def test_safety_scanner_blocks_new_pdf(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    (tmp_path / "audit.pdf").write_bytes(b"%PDF-1.4\nsynthetic\n%%EOF\n")
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "未经授权的二进制图片或 PDF" in blocked.stdout
+    assert "audit.pdf" in blocked.stdout
+
+
+def test_safety_scanner_does_not_exempt_binary_test_names(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    names = ("test-map.png", "测试截图.jpg", "synthetic-report.pdf")
+    for name in names:
+        (tmp_path / name).write_bytes(b"synthetic binary fixture")
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    for name in names:
+        assert name in blocked.stdout
+
+
+def test_safety_scanner_detects_png_removed_from_history(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    image = tmp_path / "test-history.png"
+    image.write_bytes(b"\x89PNG\r\n\x1a\nsynthetic history fixture")
+    run("git", "add", "--", image.name, cwd=tmp_path)
+    run("git", "commit", "-m", "add binary history fixture", cwd=tmp_path)
+    image_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    run("git", "rm", "--", image.name, cwd=tmp_path)
+    run("git", "commit", "-m", "remove binary history fixture", cwd=tmp_path)
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "未经授权的二进制图片或 PDF（提交历史）" in blocked.stdout
+    assert "test-history.png" in blocked.stdout
+    assert f"Commit={image_commit[:12]}" in blocked.stdout
+
+
+def test_safety_scanner_ignores_unchanged_pdf_from_master(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    evidence = tmp_path / "docs" / "evidence"
+    evidence.mkdir(parents=True)
+    (evidence / "audited.pdf").write_bytes(b"%PDF-1.4\nmaster fixture\n%%EOF\n")
+    run("git", "add", "--", "docs/evidence/audited.pdf", cwd=tmp_path)
+    run("git", "commit", "-m", "add audited master document", cwd=tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    run("git", "switch", "-c", "task/TASK-TEST-002-binary", cwd=tmp_path)
+    (tmp_path / "safe-note.txt").write_text("safe task change\n", encoding="utf-8")
+
+    completed = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert "安全扫描通过：0 命中" in completed.stdout
+
+
+def test_safety_scanner_does_not_print_binary_content(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    phone = "138" + "0013" + "8000"
+    marker = "PRIVATE_BINARY_PAYLOAD_MARKER"
+    (tmp_path / "private.png").write_bytes(
+        b"\x89PNG\r\n\x1a\n" + f"{marker}:{phone}".encode()
+    )
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+    output = blocked.stdout + blocked.stderr
+
+    assert blocked.returncode != 0
+    assert "private.png" in output
+    assert marker not in output
+    assert phone not in output
 
 
 def test_start_task_stops_before_network_when_worktree_is_dirty(
@@ -441,6 +571,7 @@ def test_finalize_review_renderer_supports_non_github_flow_task(
         "acceptance_criteria": ["审核材料准确描述离线文档任务。"],
         "known_risks": ["模拟任务不验证任何线上服务。"],
         "uncertainties": ["无。"],
+        "actions_status": "以Pull Request当前HEAD对应的Checks页面为准。",
         "task_result": {
             "user_request": "统一离线术语表标题。",
             "implementation": ["新增离线术语说明文件。"],
@@ -500,9 +631,31 @@ def test_finalize_review_renderer_supports_non_github_flow_task(
     audit_input = (review_dir / "AUDIT_INPUT.md").read_text(encoding="utf-8")
     changed_files = (review_dir / "CHANGED_FILES.md").read_text(encoding="utf-8")
     task_result = (review_dir / "TASK_RESULT.md").read_text(encoding="utf-8")
+    test_report = (review_dir / "TEST_REPORT.md").read_text(encoding="utf-8")
     assert "离线术语表清理" in review_index
     assert "只整理本地术语文档" in audit_input
     assert "docs/offline_notes.md" in changed_files
     assert "统一离线术语表标题" in task_result
     assert "建立 Codex 自动上传与 GitHub 在线审核流程" not in audit_input
     assert "建立任务分支、审核材料、安全扫描" not in task_result
+    assert (
+        "GitHub Actions结果：以Pull Request当前HEAD对应的Checks页面为准。"
+        in test_report
+    )
+
+
+def test_versioned_actions_status_does_not_pin_run_number() -> None:
+    expected = "以Pull Request当前HEAD对应的Checks页面为准。"
+    paths = (
+        ROOT / "CURRENT_STATUS.md",
+        ROOT / "docs" / "reviews" / "LATEST_REVIEW.md",
+        ROOT / "docs" / "reviews" / "TASK-GITHUB-002" / "REVIEW_CONTEXT.json",
+        ROOT / "docs" / "reviews" / "TASK-GITHUB-002" / "KNOWN_ISSUES.md",
+        ROOT / "docs" / "reviews" / "TASK-GITHUB-002" / "TEST_REPORT.md",
+        ROOT / "docs" / "reviews" / "TASK_TEMPLATE" / "TEST_REPORT.md",
+        ROOT / "scripts" / "finalize_task.ps1",
+    )
+    for path in paths:
+        text = path.read_text(encoding="utf-8-sig")
+        assert expected in text, path
+        assert not re.search(r"GitHub Actions[^\n]*运行\s*\d+", text), path

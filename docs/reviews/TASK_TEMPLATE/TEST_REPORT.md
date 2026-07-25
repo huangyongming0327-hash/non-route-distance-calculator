@@ -16,6 +16,7 @@
 - Excel 测试：{{EXCEL_TEST_RESULT}}
 - WPS 测试：{{WPS_TEST_RESULT}}
 - 真实 API 调用次数：{{REAL_API_CALL_COUNT}}
+- GitHub Actions结果：以Pull Request当前HEAD对应的Checks页面为准。
 
 ## 未执行测试及原因
 

@@ -17,7 +17,7 @@
 - 生成证据 Commit：`63fd9c2113854bd218fa5207e72595b82756df42`。
 - 固定审核入口：`docs/reviews/LATEST_REVIEW.md`。
 - 测试摘要：210 passed，0 failed，4 skipped；编译、差异和安全扫描通过。
-- GitHub Actions：通过（Windows offline validation，运行 30117277977）。
+- GitHub Actions结果：以Pull Request当前HEAD对应的Checks页面为准。
 
 ## 合并状态
 

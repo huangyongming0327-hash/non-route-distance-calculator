@@ -34,9 +34,7 @@ param(
     [string]$EvidencePytestSummary = '',
 
     [ValidateRange(0, 1000000)]
-    [int]$EvidenceSafetyFindingCount = 0,
-
-    [string]$EvidenceActionsResult = '已触发，以 Pull Request Checks 页面最终结果为准'
+    [int]$EvidenceSafetyFindingCount = 0
 )
 
 Set-StrictMode -Version Latest
@@ -69,6 +67,7 @@ $requiredReviewFiles = @(
 $reviewDir = Join-Path $repoRoot "docs\reviews\$TaskId"
 $latestReview = Join-Path $repoRoot 'docs\reviews\LATEST_REVIEW.md'
 $currentStatus = Join-Path $repoRoot 'CURRENT_STATUS.md'
+$actionsStatusText = '以Pull Request当前HEAD对应的Checks页面为准。'
 $reviewContextFile = if ($ReviewContextPath) {
     if ([IO.Path]::IsPathRooted($ReviewContextPath)) {
         $ReviewContextPath
@@ -291,10 +290,14 @@ function Read-ReviewContext {
         'acceptance_criteria',
         'known_risks',
         'uncertainties',
+        'actions_status',
         'task_result',
         'known_issues'
     )) {
         $null = Get-RequiredContextValue -Object $context -Name $name -Location 'root'
+    }
+    if ([string]$context.actions_status -ne $actionsStatusText) {
+        throw "审核上下文 actions_status 必须为：$actionsStatusText"
     }
     foreach ($name in @(
         'user_request',
@@ -377,7 +380,6 @@ function Write-ReviewPackage {
         [int]$Failed,
         [int]$Skipped,
         [string]$PytestSummary,
-        [Parameter(Mandatory = $true)][string]$ActionsResult,
         [Parameter(Mandatory = $true)]$TaskContext,
         [Parameter(Mandatory = $true)]$SafetySummary,
         [Parameter(Mandatory = $true)][string]$BaseRef
@@ -493,7 +495,7 @@ $testEvidenceNotes
 ## 失败或警告
 
 - 本地自动化失败数：$Failed
-- GitHub Actions：$ActionsResult
+- GitHub Actions结果：$actionsStatusText
 "@
     Write-Utf8File -Path (Join-Path $reviewDir 'TEST_REPORT.md') -Content $testReport
 
@@ -698,7 +700,7 @@ $uncertainties
 - 失败数：$Failed
 - 跳过数：$Skipped
 - 敏感扫描结果：$safetyFindings 命中
-- GitHub Actions 结果：$ActionsResult
+- GitHub Actions结果：$actionsStatusText
 
 ## 需要总指挥重点审核
 
@@ -734,7 +736,7 @@ $uncertainties
 - 生成证据 Commit：``$commitDisplay``。
 - 固定审核入口：``docs/reviews/LATEST_REVIEW.md``。
 - 测试摘要：$Passed passed，$Failed failed，$Skipped skipped；编译、差异和安全扫描通过。
-- GitHub Actions：$ActionsResult。
+- GitHub Actions结果：$actionsStatusText
 
 ## 合并状态
 
@@ -797,7 +799,6 @@ if ($RenderReviewOnly) {
         -Failed $EvidenceFailed `
         -Skipped $EvidenceSkipped `
         -PytestSummary $renderPytestSummary `
-        -ActionsResult $EvidenceActionsResult `
         -TaskContext $reviewContext `
         -SafetySummary $renderSafetySummary `
         -BaseRef $BaseBranch
@@ -861,7 +862,6 @@ Write-ReviewPackage `
     -Failed $failed `
     -Skipped $skipped `
     -PytestSummary $pytestSummary `
-    -ActionsResult '已触发，以 Pull Request Checks 页面最终结果为准' `
     -TaskContext $reviewContext `
     -SafetySummary $safetySummary `
     -BaseRef "origin/$BaseBranch"
@@ -973,7 +973,6 @@ Write-ReviewPackage `
     -Failed $failed `
     -Skipped $skipped `
     -PytestSummary $pytestSummary `
-    -ActionsResult '已触发，以 Pull Request Checks 页面最终结果为准' `
     -TaskContext $reviewContext `
     -SafetySummary $safetySummary `
     -BaseRef "origin/$BaseBranch"

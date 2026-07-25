@@ -29,4 +29,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safe
 ## 失败或警告
 
 - 本地自动化失败数：0
-- GitHub Actions：通过（Windows offline validation，运行 30117277977）
+- GitHub Actions结果：以Pull Request当前HEAD对应的Checks页面为准。

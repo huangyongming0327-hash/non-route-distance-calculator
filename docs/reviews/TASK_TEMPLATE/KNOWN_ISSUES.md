@@ -7,6 +7,8 @@
 
 {{KNOWN_ISSUES}}
 
+GitHub Actions结果：以Pull Request当前HEAD对应的Checks页面为准。
+
 ## 暂缓问题
 
 {{DEFERRED_ISSUES}}

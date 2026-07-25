@@ -77,13 +77,15 @@ function Add-Finding {
         [string]$Rule,
         [string]$Path,
         [string]$Scope,
-        [int]$Line = 0
+        [int]$Line = 0,
+        [string]$Commit = ''
     )
     $script:findings.Add([pscustomobject]@{
         rule = $Rule
         path = $Path
         scope = $Scope
         line = $Line
+        commit = $Commit
     })
 }
 
@@ -114,6 +116,10 @@ $textExtensions = @(
     '.cfg', '.csv', '.ini', '.json', '.md', '.ps1', '.psm1', '.py',
     '.toml', '.tsv', '.txt', '.xml', '.yaml', '.yml'
 )
+$restrictedBinaryExtensions = @(
+    '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff', '.pdf'
+)
+$restrictedBinaryRule = '未经授权的二进制图片或 PDF'
 
 $secretRules = @(
     @{ Name = 'GitHub Token'; Pattern = '(?i)(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})' },
@@ -147,6 +153,14 @@ foreach ($commit in $historyCommits) {
     )
     foreach ($repoPath in $historyPaths) {
         $extension = [IO.Path]::GetExtension($repoPath).ToLowerInvariant()
+        if ($extension -in $restrictedBinaryExtensions) {
+            Add-Finding `
+                -Rule "$restrictedBinaryRule（提交历史）" `
+                -Path $repoPath `
+                -Scope 'history' `
+                -Commit $shortCommit
+            continue
+        }
         if ($extension -notin $textExtensions) {
             continue
         }
@@ -160,8 +174,9 @@ foreach ($commit in $historyCommits) {
             if (Test-GitHistoryPattern -Commit $commit -RepoPath $repoPath -Pattern $rule.Pattern) {
                 Add-Finding `
                     -Rule "$($rule.Name)（提交历史）" `
-                    -Path "$repoPath@$shortCommit" `
-                    -Scope 'history'
+                    -Path $repoPath `
+                    -Scope 'history' `
+                    -Commit $shortCommit
             }
         }
     }
@@ -188,6 +203,9 @@ foreach ($repoPath in ($allSet | Sort-Object)) {
     }
     if ($extension -in @('.sqlite', '.sqlite3', '.db', '.db3', '.exe', '.zip', '.bundle')) {
         Add-Finding -Rule '禁止的数据库、二进制或历史包' -Path $repoPath -Scope $scope
+    }
+    if ($changedSet.Contains($repoPath) -and $extension -in $restrictedBinaryExtensions) {
+        Add-Finding -Rule $restrictedBinaryRule -Path $repoPath -Scope $scope
     }
     if ($extension -in @('.xls', '.xlsx', '.xlsm', '.xlsb')) {
         $allowedFixture = (
@@ -244,7 +262,7 @@ foreach ($repoPath in ($allSet | Sort-Object)) {
 
 $uniqueFindings = @(
     $findings |
-        Sort-Object rule, path, line, scope -Unique
+        Sort-Object rule, path, line, scope, commit -Unique
 )
 $summary = [ordered]@{
     scanned_at = (Get-Date).ToUniversalTime().ToString('o')
@@ -276,7 +294,17 @@ if ($uniqueFindings.Count -gt 0) {
     Write-Host "发现 $($uniqueFindings.Count) 项禁止内容；未显示任何完整敏感值："
     foreach ($finding in $uniqueFindings) {
         $lineSuffix = if ($finding.line -gt 0) { ":$($finding.line)" } else { '' }
-        Write-Host "  [$($finding.scope)] $($finding.rule) - $($finding.path)$lineSuffix"
+        $commitSuffix = if ($finding.commit) { "；Commit=$($finding.commit)" } else { '' }
+        Write-Host "  规则=$($finding.rule)；文件=$($finding.path)$lineSuffix$commitSuffix"
+    }
+    $binaryFindings = @(
+        $uniqueFindings |
+            Where-Object { $_.rule -like "$restrictedBinaryRule*" }
+    )
+    if ($binaryFindings.Count -gt 0) {
+        Write-Host '二进制图片或PDF无法自动确认是否已脱敏。'
+        Write-Host '普通开发任务禁止提交。'
+        Write-Host '需要上传时必须另开明确授权的文档/发布任务并人工审核。'
     }
     exit 3
 }

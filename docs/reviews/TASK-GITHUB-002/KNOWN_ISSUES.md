@@ -5,11 +5,12 @@
 
 ## 已知问题
 
-- 修复实现对应的 GitHub Actions 运行 30112373983 已通过，当前未发现新的技术阻塞问题。
+- 当前未发现新的技术阻塞问题。GitHub Actions结果：以Pull Request当前HEAD对应的Checks页面为准。
 
 ## 暂缓问题
 
 - master 分支保护仍由用户在 GitHub 网页配置。
+- finalize_task.ps1职责较多，后续可在独立任务中拆分为审核渲染模块和GitHub编排模块；本任务已通过自动测试，当前不阻止合并。
 
 ## 用户影响
 

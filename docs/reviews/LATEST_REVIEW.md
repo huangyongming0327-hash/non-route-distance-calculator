@@ -29,7 +29,7 @@
 - 失败数：0
 - 跳过数：4
 - 敏感扫描结果：0 命中
-- GitHub Actions 结果：通过（Windows offline validation，运行 30117277977）
+- GitHub Actions结果：以Pull Request当前HEAD对应的Checks页面为准。
 
 ## 需要总指挥重点审核
 
