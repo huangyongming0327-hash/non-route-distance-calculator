@@ -1,11 +1,11 @@
 # TASK-GITHUB-002 审核首页
 
-- 任务名称：建立自动上传与在线审核流程（FIX2 最终收尾）
+- 任务名称：建立自动上传与在线审核流程（固定总指挥审核通知）
 - 任务分支：`task/TASK-GITHUB-002-review-workflow`
 - 基础分支：`master`
 - 基础 Commit：`290153e240f059f7e3ffda34476446d77da409b8`
 - 审核目标：Pull Request 当前 HEAD
-- 生成证据 Commit：`bb1fe11f698fe701875348a7bd76a9a4a39c6a7e`
+- 生成证据 Commit：`ef01a403e6825cb09e0d3ff133bddeabf164f1a9`
 - Pull Request：https://github.com/huangyongming0327-hash/non-route-distance-calculator/pull/1
 
 ## 任务目标
@@ -16,6 +16,7 @@
 - 让 finalize_task.ps1 从任务上下文与实际证据生成审核材料，不自行推断业务结论。
 - 让版本化审核状态始终指向 Pull Request 当前 HEAD 的 Checks 页面，不固定运行编号。
 - 让最新审核入口、独立审核输入、变更清单和 Pull Request 正文与当前审核范围一致。
+- 任务完成后自动等待当前 PR HEAD 的 Actions，并生成可直接复制给总指挥的完整审核通知。
 
 ## 实际完成范围
 
@@ -79,6 +80,7 @@
 - 安全扫描必须覆盖当前差异和分支中已经删除的历史内容，同时不得输出完整敏感值。
 - 二进制门禁只检查相对基础分支新增或修改的文件，不能误伤 master 中未修改的已审计图片或 PDF。
 - 审核报告中的业务影响、风险和合并建议只能来自本上下文，不能由脚本猜测。
+- PR 地址、当前 HEAD、Actions 或保护状态缺失时不得输出完成通知，通知不得保留占位符。
 - 修复必须继续兼容 Windows PowerShell 5.1 和 GitHub Actions。
 
 ## 推荐审核顺序

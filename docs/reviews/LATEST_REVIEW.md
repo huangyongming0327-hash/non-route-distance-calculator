@@ -1,15 +1,15 @@
 # 最新待审核任务
 
 - 任务编号：TASK-GITHUB-002
-- 任务名称：建立自动上传与在线审核流程（FIX2 最终收尾）
+- 任务名称：建立自动上传与在线审核流程（固定总指挥审核通知）
 - 当前状态：已完成本地验证并提交待审核；尚未合并
 - 任务分支：`task/TASK-GITHUB-002-review-workflow`
 - 基础分支：`master`
 - Pull Request 编号：1
 - Pull Request 网页地址：https://github.com/huangyongming0327-hash/non-route-distance-calculator/pull/1
 - 审核目标：Pull Request 当前 HEAD
-- 生成证据 Commit Hash：`bb1fe11f698fe701875348a7bd76a9a4a39c6a7e`
-- 完成时间：2026-07-25 11:50:45 +08:00
+- 生成证据 Commit Hash：`ef01a403e6825cb09e0d3ff133bddeabf164f1a9`
+- 完成时间：2026-07-25 12:26:00 +08:00
 - 是否已经合并：否
 
 ## 审核材料入口
@@ -25,7 +25,7 @@
 
 ## 测试摘要
 
-- 自动测试通过数：217
+- 自动测试通过数：220
 - 失败数：0
 - 跳过数：4
 - 敏感扫描结果：0 命中

@@ -1,6 +1,6 @@
 # TASK-GITHUB-002 变更文件
 
-- 任务名称：建立自动上传与在线审核流程（FIX2 最终收尾）
+- 任务名称：建立自动上传与在线审核流程（固定总指挥审核通知）
 - 任务分支：`task/TASK-GITHUB-002-review-workflow`
 
 ## 新增文件
@@ -58,41 +58,41 @@
  .github/ISSUE_TEMPLATE/feature_request.yml       |   71 ++
  .github/pull_request_template.md                 |   45 +
  .github/workflows/pr-validation.yml              |   89 ++
- AGENTS.md                                        |   78 ++
+ AGENTS.md                                        |  107 ++
  CURRENT_STATUS.md                                |   60 +-
  README.md                                        |    5 +-
- docs/CODEX_TASK_TEMPLATE.md                      |   77 ++
+ docs/CODEX_TASK_TEMPLATE.md                      |   84 ++
  docs/CURRENT_STATUS.md                           |    2 +
  docs/GITHUB_BRANCH_PROTECTION_GUIDE.md           |   25 +
  docs/TASK-GITHUB-001A_RESULT.md                  |    6 +-
  docs/TASK-GITHUB-001B_RESULT.md                  |    4 +-
  docs/reviews/LATEST_REVIEW.md                    |   44 +
- docs/reviews/README.md                           |   24 +
- docs/reviews/TASK-GITHUB-002/AUDIT_INPUT.md      |  165 ++++
- docs/reviews/TASK-GITHUB-002/CHANGED_FILES.md    |  101 +++
+ docs/reviews/README.md                           |   39 +
+ docs/reviews/TASK-GITHUB-002/AUDIT_INPUT.md      |  169 +++
+ docs/reviews/TASK-GITHUB-002/CHANGED_FILES.md    |  101 ++
  docs/reviews/TASK-GITHUB-002/KNOWN_ISSUES.md     |   25 +
- docs/reviews/TASK-GITHUB-002/REVIEW_CONTEXT.json |   91 ++
- docs/reviews/TASK-GITHUB-002/REVIEW_INDEX.md     |   88 ++
+ docs/reviews/TASK-GITHUB-002/REVIEW_CONTEXT.json |  100 ++
+ docs/reviews/TASK-GITHUB-002/REVIEW_INDEX.md     |   91 ++
  docs/reviews/TASK-GITHUB-002/SECURITY_REPORT.md  |   17 +
- docs/reviews/TASK-GITHUB-002/TASK_RESULT.md      |   36 +
+ docs/reviews/TASK-GITHUB-002/TASK_RESULT.md      |   40 +
  docs/reviews/TASK-GITHUB-002/TEST_REPORT.md      |   32 +
  docs/reviews/TASK_TEMPLATE/AUDIT_INPUT.md        |   41 +
  docs/reviews/TASK_TEMPLATE/CHANGED_FILES.md      |   25 +
  docs/reviews/TASK_TEMPLATE/KNOWN_ISSUES.md       |   26 +
- docs/reviews/TASK_TEMPLATE/REVIEW_CONTEXT.json   |   55 ++
+ docs/reviews/TASK_TEMPLATE/REVIEW_CONTEXT.json   |   55 +
  docs/reviews/TASK_TEMPLATE/REVIEW_INDEX.md       |   42 +
  docs/reviews/TASK_TEMPLATE/SECURITY_REPORT.md    |   20 +
  docs/reviews/TASK_TEMPLATE/TASK_RESULT.md        |   28 +
  docs/reviews/TASK_TEMPLATE/TEST_REPORT.md        |   27 +
- scripts/finalize_task.ps1                        | 1025 ++++++++++++++++++++++
- scripts/scan_repository_safety.ps1               |  312 +++++++
- scripts/start_task.ps1                           |  126 +++
- scripts/validate_review_package.py               |  238 +++++
+ scripts/finalize_task.ps1                        | 1384 ++++++++++++++++++++++
+ scripts/scan_repository_safety.ps1               |  312 +++++
+ scripts/start_task.ps1                           |  126 ++
+ scripts/validate_review_package.py               |  238 ++++
  tests/conftest.py                                |    3 +-
- tests/test_review_workflow.py                    |  661 ++++++++++++++
+ tests/test_review_workflow.py                    |  832 +++++++++++++
  tests/test_task007a_performance.py               |   18 +-
  tests/test_ui_smoke.py                           |    2 +-
- 38 files changed, 3760 insertions(+), 55 deletions(-)
+ 38 files changed, 4361 insertions(+), 55 deletions(-)
 ```
 
 ## 范围与核心业务
