@@ -1,6 +1,6 @@
 # TASK-GITHUB-002 变更文件
 
-- 任务名称：建立自动上传与在线审核流程（固定总指挥审核通知）
+- 任务名称：建立自动上传与在线审核流程（FIX3 安全收尾）
 - 任务分支：`task/TASK-GITHUB-002-review-workflow`
 
 ## 新增文件
@@ -68,13 +68,13 @@
  docs/TASK-GITHUB-001B_RESULT.md                  |    4 +-
  docs/reviews/LATEST_REVIEW.md                    |   44 +
  docs/reviews/README.md                           |   39 +
- docs/reviews/TASK-GITHUB-002/AUDIT_INPUT.md      |  169 +++
+ docs/reviews/TASK-GITHUB-002/AUDIT_INPUT.md      |  172 +++
  docs/reviews/TASK-GITHUB-002/CHANGED_FILES.md    |  101 ++
  docs/reviews/TASK-GITHUB-002/KNOWN_ISSUES.md     |   25 +
- docs/reviews/TASK-GITHUB-002/REVIEW_CONTEXT.json |  100 ++
- docs/reviews/TASK-GITHUB-002/REVIEW_INDEX.md     |   91 ++
+ docs/reviews/TASK-GITHUB-002/REVIEW_CONTEXT.json |  114 ++
+ docs/reviews/TASK-GITHUB-002/REVIEW_INDEX.md     |   93 ++
  docs/reviews/TASK-GITHUB-002/SECURITY_REPORT.md  |   17 +
- docs/reviews/TASK-GITHUB-002/TASK_RESULT.md      |   40 +
+ docs/reviews/TASK-GITHUB-002/TASK_RESULT.md      |   44 +
  docs/reviews/TASK-GITHUB-002/TEST_REPORT.md      |   32 +
  docs/reviews/TASK_TEMPLATE/AUDIT_INPUT.md        |   41 +
  docs/reviews/TASK_TEMPLATE/CHANGED_FILES.md      |   25 +
@@ -85,14 +85,14 @@
  docs/reviews/TASK_TEMPLATE/TASK_RESULT.md        |   28 +
  docs/reviews/TASK_TEMPLATE/TEST_REPORT.md        |   27 +
  scripts/finalize_task.ps1                        | 1384 ++++++++++++++++++++++
- scripts/scan_repository_safety.ps1               |  312 +++++
+ scripts/scan_repository_safety.ps1               |  337 ++++++
  scripts/start_task.ps1                           |  126 ++
  scripts/validate_review_package.py               |  238 ++++
  tests/conftest.py                                |    3 +-
- tests/test_review_workflow.py                    |  832 +++++++++++++
+ tests/test_review_workflow.py                    | 1145 ++++++++++++++++++
  tests/test_task007a_performance.py               |   18 +-
  tests/test_ui_smoke.py                           |    2 +-
- 38 files changed, 4361 insertions(+), 55 deletions(-)
+ 38 files changed, 4722 insertions(+), 55 deletions(-)
 ```
 
 ## 范围与核心业务

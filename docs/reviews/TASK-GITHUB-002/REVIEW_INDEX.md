@@ -1,11 +1,11 @@
 # TASK-GITHUB-002 审核首页
 
-- 任务名称：建立自动上传与在线审核流程（固定总指挥审核通知）
+- 任务名称：建立自动上传与在线审核流程（FIX3 安全收尾）
 - 任务分支：`task/TASK-GITHUB-002-review-workflow`
 - 基础分支：`master`
 - 基础 Commit：`290153e240f059f7e3ffda34476446d77da409b8`
 - 审核目标：Pull Request 当前 HEAD
-- 生成证据 Commit：`ef01a403e6825cb09e0d3ff133bddeabf164f1a9`
+- 生成证据 Commit：`59a44e43ef0d4428e70e8d75dc5efc32f172a9e9`
 - Pull Request：https://github.com/huangyongming0327-hash/non-route-distance-calculator/pull/1
 
 ## 任务目标
@@ -17,6 +17,8 @@
 - 让版本化审核状态始终指向 Pull Request 当前 HEAD 的 Checks 页面，不固定运行编号。
 - 让最新审核入口、独立审核输入、变更清单和 Pull Request 正文与当前审核范围一致。
 - 任务完成后自动等待当前 PR HEAD 的 Actions，并生成可直接复制给总指挥的完整审核通知。
+- 取消所有 Excel 文件名和测试目录豁免，普通任务新增、修改或历史提交工作簿时一律拦截。
+- 增强独立中文地址识别，覆盖地址字段标签和连续行政区划形式，同时控制说明文字误报。
 
 ## 实际完成范围
 
@@ -81,6 +83,8 @@
 - 二进制门禁只检查相对基础分支新增或修改的文件，不能误伤 master 中未修改的已审计图片或 PDF。
 - 审核报告中的业务影响、风险和合并建议只能来自本上下文，不能由脚本猜测。
 - PR 地址、当前 HEAD、Actions 或保护状态缺失时不得输出完成通知，通知不得保留占位符。
+- Excel 门禁只能针对相对基础分支新增或修改的工作簿，不能误伤 master 中未修改的既有合成测试文件。
+- 新增地址规则必须发现缺少门牌结尾的真实形态，同时不得把字段校验或测试规则说明误判为地址。
 - 修复必须继续兼容 Windows PowerShell 5.1 和 GitHub Actions。
 
 ## 推荐审核顺序

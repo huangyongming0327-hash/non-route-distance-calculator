@@ -1,6 +1,6 @@
 # TASK-GITHUB-002 测试报告
 
-- 任务名称：建立自动上传与在线审核流程（固定总指挥审核通知）
+- 任务名称：建立自动上传与在线审核流程（FIX3 安全收尾）
 - 任务分支：`task/TASK-GITHUB-002-review-workflow`
 
 ## 实际执行命令
@@ -15,14 +15,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/scan_repository_safe
 
 ## 结果摘要
 
-- 通过：220
+- 通过：233
 - 失败：0
 - 跳过：4
-- 完整离线 pytest：220 passed, 4 skipped in 30.89s
+- 完整离线 pytest：233 passed, 4 skipped in 50.79s
 
 ## 任务提供的验证说明
 
-- 专项测试覆盖测试文件中的个人数据、图片与 PDF 门禁、删除后的文本及二进制提交历史、非 GitHub 流程审核渲染和固定总指挥通知。
+- 专项测试覆盖个人数据、图片与 PDF、所有 Excel 格式、独立地址、删除后的提交历史、非 GitHub 流程审核渲染和固定总指挥通知。
 - 完整离线 pytest、compileall、git diff --check、安全扫描和审核材料完整性检查必须实际执行。
 - 不调用真实高德 API，不运行真实 Excel 或 WPS COM。
 
