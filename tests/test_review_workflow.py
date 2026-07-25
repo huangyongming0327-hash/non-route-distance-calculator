@@ -524,6 +524,319 @@ def test_safety_scanner_does_not_print_binary_content(tmp_path: Path) -> None:
     assert phone not in output
 
 
+def test_safety_scanner_blocks_named_excel_fixture(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    workbook = tmp_path / "tests" / "fixtures" / "测试样表.xlsm"
+    workbook.parent.mkdir(parents=True)
+    workbook.write_bytes(b"synthetic workbook fixture")
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "未经授权的 Excel 工作簿" in blocked.stdout
+    assert "tests/fixtures/测试样表.xlsm" in blocked.stdout
+
+
+def test_safety_scanner_blocks_synthetic_excel_fixture(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    (tmp_path / "synthetic_fixture.xlsm").write_bytes(b"synthetic workbook fixture")
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "未经授权的 Excel 工作簿" in blocked.stdout
+    assert "synthetic_fixture.xlsm" in blocked.stdout
+
+
+def test_safety_scanner_ignores_unchanged_excel_fixture_from_master(
+    tmp_path: Path,
+) -> None:
+    initialize_repository(tmp_path)
+    fixture = tmp_path / "tests" / "fixtures" / "synthetic_fixture.xlsm"
+    fixture.parent.mkdir(parents=True)
+    fixture.write_bytes(b"audited master workbook fixture")
+    run("git", "add", "--", "tests/fixtures/synthetic_fixture.xlsm", cwd=tmp_path)
+    run("git", "commit", "-m", "add audited master workbook", cwd=tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    run("git", "switch", "-c", "task/TASK-TEST-003-excel", cwd=tmp_path)
+    (tmp_path / "safe-note.txt").write_text("safe task change\n", encoding="utf-8")
+
+    completed = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert "安全扫描通过：0 命中" in completed.stdout
+
+
+def test_safety_scanner_blocks_modified_excel_fixture_from_master(
+    tmp_path: Path,
+) -> None:
+    initialize_repository(tmp_path)
+    fixture = tmp_path / "tests" / "fixtures" / "synthetic_fixture.xlsm"
+    fixture.parent.mkdir(parents=True)
+    fixture.write_bytes(b"audited master workbook fixture")
+    run("git", "add", "--", "tests/fixtures/synthetic_fixture.xlsm", cwd=tmp_path)
+    run("git", "commit", "-m", "add audited master workbook", cwd=tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    run("git", "switch", "-c", "task/TASK-TEST-004-excel", cwd=tmp_path)
+    fixture.write_bytes(b"modified workbook fixture")
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "未经授权的 Excel 工作簿" in blocked.stdout
+    assert "tests/fixtures/synthetic_fixture.xlsm" in blocked.stdout
+
+
+def test_safety_scanner_detects_excel_removed_from_history(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    run("git", "switch", "-c", "task/TASK-TEST-005-excel", cwd=tmp_path)
+    workbook = tmp_path / "synthetic_fixture.xlsm"
+    workbook.write_bytes(b"temporary workbook fixture")
+    run("git", "add", "--", workbook.name, cwd=tmp_path)
+    run("git", "commit", "-m", "add workbook history fixture", cwd=tmp_path)
+    workbook_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    run("git", "rm", "--", workbook.name, cwd=tmp_path)
+    run("git", "commit", "-m", "remove workbook history fixture", cwd=tmp_path)
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "未经授权的 Excel 工作簿（提交历史）" in blocked.stdout
+    assert "synthetic_fixture.xlsm" in blocked.stdout
+    assert f"Commit={workbook_commit[:12]}" in blocked.stdout
+
+
+def test_safety_scanner_does_not_print_excel_content(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    phone = "139" + "0013" + "8000"
+    marker = "PRIVATE_WORKBOOK_PAYLOAD_MARKER"
+    (tmp_path / "test_workbook.xlsm").write_bytes(f"{marker}:{phone}".encode())
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+    output = blocked.stdout + blocked.stderr
+
+    assert blocked.returncode != 0
+    assert "test_workbook.xlsm" in output
+    assert marker not in output
+    assert phone not in output
+
+
+def test_safety_scanner_blocks_province_city_county_address(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    address = "".join(
+        (
+            "河北",
+            "省",
+            "保定",
+            "市",
+            "望都",
+            "县",
+            "高岭",
+            "镇",
+            "某",
+            "工业园",
+        )
+    )
+    (tmp_path / "address.txt").write_text(address + "\n", encoding="utf-8")
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "行政区划连续地址形态" in blocked.stdout
+    assert address not in blocked.stdout
+
+
+def test_safety_scanner_blocks_labeled_municipality_address(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    label = "".join(
+        (
+            "原始",
+            "详细",
+            "地址",
+            "：",
+        )
+    )
+    address = "".join(
+        (
+            "北京",
+            "市",
+            "海淀",
+            "区",
+            "上庄",
+            "镇",
+            "某村",
+        )
+    )
+    value = label + address
+    (tmp_path / "labeled-address.txt").write_text(value + "\n", encoding="utf-8")
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "地址字段形态" in blocked.stdout
+    assert value not in blocked.stdout
+
+
+def test_safety_scanner_blocks_province_city_district_street_address(
+    tmp_path: Path,
+) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    address = "".join(
+        (
+            "江苏",
+            "省",
+            "南京",
+            "市",
+            "江宁",
+            "区",
+            "麒麟",
+            "街道",
+            "西村",
+        )
+    )
+    (tmp_path / "street-address.txt").write_text(address + "\n", encoding="utf-8")
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "行政区划连续地址形态" in blocked.stdout
+    assert address not in blocked.stdout
+
+
+def test_safety_scanner_does_not_exempt_synthetic_test_address(
+    tmp_path: Path,
+) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    address = "".join(
+        (
+            "广东",
+            "省",
+            "深圳",
+            "市",
+            "南山",
+            "区",
+            "粤海",
+            "街道",
+        )
+    )
+    note = tmp_path / "tests" / "synthetic_test_address.txt"
+    note.parent.mkdir()
+    note.write_text(
+        f"ordinary synthetic test text\n{address}\n",
+        encoding="utf-8",
+    )
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "行政区划连续地址形态" in blocked.stdout
+    assert "tests/synthetic_test_address.txt" in blocked.stdout
+    assert address not in blocked.stdout
+
+
+def test_safety_scanner_detects_address_removed_from_history(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    run("git", "switch", "-c", "task/TASK-TEST-006-address", cwd=tmp_path)
+    address = "".join(
+        (
+            "河北",
+            "省",
+            "保定",
+            "市",
+            "望都",
+            "县",
+            "高岭",
+            "镇",
+        )
+    )
+    note = tmp_path / "address-history.txt"
+    note.write_text(address + "\n", encoding="utf-8")
+    run("git", "add", "--", note.name, cwd=tmp_path)
+    run("git", "commit", "-m", "add address history fixture", cwd=tmp_path)
+    address_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    run("git", "rm", "--", note.name, cwd=tmp_path)
+    run("git", "commit", "-m", "remove address history fixture", cwd=tmp_path)
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert blocked.returncode != 0
+    assert "行政区划连续地址形态（提交历史）" in blocked.stdout
+    assert "address-history.txt" in blocked.stdout
+    assert f"Commit={address_commit[:12]}" in blocked.stdout
+    assert address not in blocked.stdout
+
+
+def test_safety_scanner_ignores_address_rule_explanations(tmp_path: Path) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    (tmp_path / "safe-address-rules.txt").write_text(
+        "地址字段不能为空\n测试地址匹配规则\n",
+        encoding="utf-8",
+    )
+
+    completed = run_safety_scanner(tmp_path, scanner, base_commit)
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert "安全扫描通过：0 命中" in completed.stdout
+
+
+def test_safety_scanner_does_not_print_labeled_address_content(
+    tmp_path: Path,
+) -> None:
+    initialize_repository(tmp_path)
+    scanner = install_safety_scanner(tmp_path)
+    base_commit = run("git", "rev-parse", "HEAD", cwd=tmp_path).stdout.strip()
+    label = "".join(
+        (
+            "标准",
+            "地址",
+            "：",
+        )
+    )
+    address = "".join(
+        (
+            "上海",
+            "市",
+            "浦东",
+            "区",
+            "某",
+            "街道",
+            "某村",
+        )
+    )
+    value = label + address
+    (tmp_path / "private-address.txt").write_text(value + "\n", encoding="utf-8")
+
+    blocked = run_safety_scanner(tmp_path, scanner, base_commit)
+    output = blocked.stdout + blocked.stderr
+
+    assert blocked.returncode != 0
+    assert "private-address.txt" in output
+    assert value not in output
+    assert address not in output
+
+
 def test_start_task_stops_before_network_when_worktree_is_dirty(
     tmp_path: Path,
 ) -> None:

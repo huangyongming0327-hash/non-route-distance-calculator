@@ -120,6 +120,10 @@ $restrictedBinaryExtensions = @(
     '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff', '.pdf'
 )
 $restrictedBinaryRule = '未经授权的二进制图片或 PDF'
+$restrictedExcelExtensions = @('.xls', '.xlsx', '.xlsm', '.xlsb')
+$restrictedExcelRule = '未经授权的 Excel 工作簿'
+$labeledAddressPattern = '(?:原始详细地址|原始地址|详细地址|标准地址|收货地址|发货地址|仓库地址)\s*[：:]\s*[\u4e00-\u9fff]{8,}'
+$administrativeAddressPattern = '(?:[\u4e00-\u9fff]{2,8}省[\u4e00-\u9fff]{2,8}市[\u4e00-\u9fff]{1,8}(?:区|县)|(?:北京市|上海市|天津市|重庆市)[\u4e00-\u9fff]{1,8}(?:区|县)|[\u4e00-\u9fff]{2,8}市[\u4e00-\u9fff]{1,8}(?:区|县)[\u4e00-\u9fff]{1,12}(?:镇|街道|路|工业园))'
 
 $secretRules = @(
     @{ Name = 'GitHub Token'; Pattern = '(?i)(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})' },
@@ -134,7 +138,9 @@ $historyRules = @(
     @{ Name = '明文凭据赋值'; Pattern = '(amap[_-]?)?(key|token|password|secret|credential)[[:space:]]*[:=][[:space:]]*["'']?[A-Za-z0-9_./+=-]{12,}' },
     @{ Name = '手机号形态'; Pattern = '(^|[^0-9])1[3-9][0-9]{9}([^0-9]|$)' },
     @{ Name = '经纬度业务证据形态'; Pattern = '(^|[^0-9])(7[3-9]|8[0-9]|9[0-9]|1[0-3][0-9])\.[0-9]{4,}[[:space:]]*[,，][[:space:]]*(1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])\.[0-9]{4,}([^0-9]|$)' },
-    @{ Name = '完整业务地址形态'; Pattern = '(客户|仓库|工厂|收货|发货).{0,90}(省|市|区|县|镇|街道|路|街|大道).{0,90}(号|门|库房)' }
+    @{ Name = '完整业务地址形态'; Pattern = '(客户|仓库|工厂|收货|发货).{0,90}(省|市|区|县|镇|街道|路|街|大道).{0,90}(号|门|库房)' },
+    @{ Name = '地址字段形态'; Pattern = '(原始详细地址|原始地址|详细地址|标准地址|收货地址|发货地址|仓库地址)[[:space:]]*[:：][[:space:]]*[^[:space:]]{8,}' },
+    @{ Name = '行政区划连续地址形态'; Pattern = '(.{2,12}省.{2,12}市.{1,12}(区|县)|(北京市|上海市|天津市|重庆市).{1,12}(区|县)|.{2,12}市.{1,12}(区|县).{1,20}(镇|街道|路|工业园))' }
 )
 
 $historyCommits = @(
@@ -161,13 +167,25 @@ foreach ($commit in $historyCommits) {
                 -Commit $shortCommit
             continue
         }
+        if ($extension -in $restrictedExcelExtensions) {
+            Add-Finding `
+                -Rule "$restrictedExcelRule（提交历史）" `
+                -Path $repoPath `
+                -Scope 'history' `
+                -Commit $shortCommit
+            continue
+        }
         if ($extension -notin $textExtensions) {
             continue
         }
         foreach ($rule in $historyRules) {
             if (
                 $repoPath -eq 'scripts/scan_repository_safety.ps1' -and
-                $rule.Name -eq '完整业务地址形态'
+                $rule.Name -in @(
+                    '完整业务地址形态',
+                    '地址字段形态',
+                    '行政区划连续地址形态'
+                )
             ) {
                 continue
             }
@@ -207,15 +225,8 @@ foreach ($repoPath in ($allSet | Sort-Object)) {
     if ($changedSet.Contains($repoPath) -and $extension -in $restrictedBinaryExtensions) {
         Add-Finding -Rule $restrictedBinaryRule -Path $repoPath -Scope $scope
     }
-    if ($extension -in @('.xls', '.xlsx', '.xlsm', '.xlsb')) {
-        $allowedFixture = (
-            $lower -match '^tests/fixtures/' -and
-            $extension -eq '.xlsm' -and
-            $leafName -match '(synthetic|fixture|mock|合成|测试)'
-        )
-        if (-not $allowedFixture) {
-            Add-Finding -Rule '业务或结果 Excel' -Path $repoPath -Scope $scope
-        }
+    if ($changedSet.Contains($repoPath) -and $extension -in $restrictedExcelExtensions) {
+        Add-Finding -Rule $restrictedExcelRule -Path $repoPath -Scope $scope
     }
 
     if (Test-Path -LiteralPath $fullPath -PathType Leaf) {
@@ -256,6 +267,12 @@ foreach ($repoPath in ($allSet | Sort-Object)) {
         }
         if ($line -match '(?:客户|仓库|工厂|收货|发货).{0,30}(?:省|市|区|县|镇|街道|路|街|大道).{0,30}(?:号|门|库房)') {
             Add-Finding -Rule '完整业务地址形态' -Path $repoPath -Scope $scope -Line ($index + 1)
+        }
+        if ($line -match $labeledAddressPattern) {
+            Add-Finding -Rule '地址字段形态' -Path $repoPath -Scope $scope -Line ($index + 1)
+        }
+        if ($line -match $administrativeAddressPattern) {
+            Add-Finding -Rule '行政区划连续地址形态' -Path $repoPath -Scope $scope -Line ($index + 1)
         }
     }
 }
@@ -305,6 +322,14 @@ if ($uniqueFindings.Count -gt 0) {
         Write-Host '二进制图片或PDF无法自动确认是否已脱敏。'
         Write-Host '普通开发任务禁止提交。'
         Write-Host '需要上传时必须另开明确授权的文档/发布任务并人工审核。'
+    }
+    $excelFindings = @(
+        $uniqueFindings |
+            Where-Object { $_.rule -like "$restrictedExcelRule*" }
+    )
+    if ($excelFindings.Count -gt 0) {
+        Write-Host 'Excel 工作簿无法仅凭目录或文件名确认是否为合成数据。'
+        Write-Host '普通开发任务新增、修改或在分支历史中提交 Excel 时禁止推送。'
     }
     exit 3
 }
