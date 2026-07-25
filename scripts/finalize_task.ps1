@@ -18,6 +18,13 @@ param(
 
     [switch]$RenderReviewOnly,
 
+    [switch]$RenderCommanderNoticeOnly,
+
+    [string]$CommanderNoticeEvidencePath = '',
+
+    [ValidateRange(30, 7200)]
+    [int]$ActionsWaitTimeoutSeconds = 1800,
+
     [string]$EvidenceCommit = '',
 
     [string]$EvidencePrUrl = '',
@@ -156,6 +163,253 @@ function Invoke-Gh {
         throw "GitHub CLI 命令失败：gh $($GhArguments -join ' ')`n$($output -join [Environment]::NewLine)"
     }
     return [pscustomobject]@{ Output = $output; ExitCode = $exitCode }
+}
+
+function ConvertFrom-GhJson {
+    param(
+        [Parameter(Mandatory = $true)]$Result,
+        [Parameter(Mandatory = $true)][string]$Label
+    )
+    $text = ($Result.Output -join [Environment]::NewLine).Trim()
+    if (-not $text) {
+        throw "$Label 没有返回 JSON。"
+    }
+    try {
+        return ($text | ConvertFrom-Json)
+    } catch {
+        throw "$Label 返回的 JSON 无法解析。"
+    }
+}
+
+function Get-NoticeEvidenceValue {
+    param(
+        [Parameter(Mandatory = $true)]$Evidence,
+        [Parameter(Mandatory = $true)][string]$Name
+    )
+    $property = $Evidence.PSObject.Properties[$Name]
+    if ($null -eq $property -or $null -eq $property.Value) {
+        throw "总指挥审核通知缺少真实字段：$Name"
+    }
+    if ($property.Value -is [string]) {
+        $text = ([string]$property.Value).Trim()
+        if (-not $text -or $text -match '<[^>]+>') {
+            throw "总指挥审核通知字段无效或仍含占位符：$Name"
+        }
+        return $text
+    }
+    return $property.Value
+}
+
+function ConvertTo-ChineseBoolean {
+    param([Parameter(Mandatory = $true)][bool]$Value)
+    if ($Value) {
+        return '是'
+    }
+    return '否'
+}
+
+function New-CommanderReviewNotice {
+    param(
+        [Parameter(Mandatory = $true)]$Evidence,
+        [Parameter(Mandatory = $true)][string]$NoticeTaskId,
+        [Parameter(Mandatory = $true)][string]$NoticeTaskName,
+        [Parameter(Mandatory = $true)][string]$NoticeBranch
+    )
+
+    $projectName = [string](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'project_name')
+    $repositoryUrl = [string](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'repository_url')
+    $prUrl = [string](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'pr_url')
+    $prNumber = [int](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'pr_number')
+    $prHead = [string](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'pr_head')
+    $actionsStatus = [string](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'actions_status')
+    if ($actionsStatus -ne 'completed') {
+        throw "当前 PR HEAD 的 GitHub Actions 尚未完成：$actionsStatus"
+    }
+    $actionsConclusion = [string](
+        Get-NoticeEvidenceValue -Evidence $Evidence -Name 'actions_conclusion'
+    )
+    $actionsRunId = [string](
+        Get-NoticeEvidenceValue -Evidence $Evidence -Name 'actions_run_id'
+    )
+    $actionsUrl = [string](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'actions_url')
+    $pytestPassed = [int](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'pytest_passed')
+    $pytestFailed = [int](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'pytest_failed')
+    $pytestSkipped = [int](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'pytest_skipped')
+    $safetyScanned = [int](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'safety_scanned')
+    $safetyChanged = [int](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'safety_changed')
+    $safetyFindings = [int](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'safety_findings')
+    $prDraft = [bool](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'pr_draft')
+    $prMerged = [bool](Get-NoticeEvidenceValue -Evidence $Evidence -Name 'pr_merged')
+    $masterModified = [bool](
+        Get-NoticeEvidenceValue -Evidence $Evidence -Name 'master_modified'
+    )
+    $releaseCreated = [bool](
+        Get-NoticeEvidenceValue -Evidence $Evidence -Name 'release_created'
+    )
+    $formalTagMoved = [bool](
+        Get-NoticeEvidenceValue -Evidence $Evidence -Name 'formal_tag_moved'
+    )
+
+    if ($repositoryUrl -notmatch '^https://github\.com/[^/\s]+/[^/\s]+/?$') {
+        throw '总指挥审核通知中的 GitHub 仓库地址无效。'
+    }
+    if ($prUrl -notmatch '^https://github\.com/[^/\s]+/[^/\s]+/pull/\d+/?$') {
+        throw '总指挥审核通知中的 Pull Request 地址无效。'
+    }
+    if ($prNumber -le 0) {
+        throw '总指挥审核通知中的 Pull Request 编号无效。'
+    }
+    if ($prHead -notmatch '^[0-9a-f]{40}$') {
+        throw '总指挥审核通知中的 PR HEAD 不是完整 Commit Hash。'
+    }
+    if ($actionsRunId -notmatch '^\d+$') {
+        throw '总指挥审核通知中的 Actions 运行编号无效。'
+    }
+    if ($actionsUrl -notmatch '^https://github\.com/[^/\s]+/[^/\s]+/actions/runs/\d+/?$') {
+        throw '总指挥审核通知中的 Actions 网页地址无效。'
+    }
+
+    $actionsFinal = if ($actionsConclusion -eq 'success') {
+        '成功'
+    } else {
+        "失败（$actionsConclusion）"
+    }
+    $prDraftText = ConvertTo-ChineseBoolean -Value $prDraft
+    $prMergedText = ConvertTo-ChineseBoolean -Value $prMerged
+    $masterModifiedText = ConvertTo-ChineseBoolean -Value $masterModified
+    $releaseCreatedText = ConvertTo-ChineseBoolean -Value $releaseCreated
+    $formalTagMovedText = ConvertTo-ChineseBoolean -Value $formalTagMoved
+
+    $notice = @"
+--------------------------------------------------
+【可直接复制给总指挥审核】
+
+请审核 GitHub 仓库的最新待审核任务。
+
+项目：$projectName
+任务：$NoticeTaskId｜$NoticeTaskName
+
+GitHub仓库：
+$repositoryUrl
+
+Pull Request：
+$prUrl
+PR编号：#$prNumber
+
+当前PR HEAD：
+$prHead
+
+任务分支：
+$NoticeBranch
+
+固定审核入口：
+docs/reviews/LATEST_REVIEW.md
+
+本任务审核目录：
+docs/reviews/$NoticeTaskId/
+
+GitHub Actions：
+$actionsFinal；运行 $actionsRunId；$actionsUrl
+
+本地测试：
+$pytestPassed passed，$pytestFailed failed，$pytestSkipped skipped
+
+安全扫描：
+$safetyScanned 个文件，$safetyChanged 个差异文件，$safetyFindings 个命中
+
+当前保护状态：
+- PR是否Draft：$prDraftText
+- PR是否已合并：$prMergedText
+- master是否已修改：$masterModifiedText
+- 是否创建Release：$releaseCreatedText
+- 是否移动正式标签：$formalTagMovedText
+
+Codex已经完成代码修改、测试、安全扫描、审核材料上传和GitHub Actions验证。
+
+请直接读取当前Pull Request、PR当前HEAD、docs/reviews/LATEST_REVIEW.md及本任务审核目录，独立审核：
+
+1. 用户需求是否完整实现；
+2. 是否修改任务范围之外的内容；
+3. 是否影响已有业务规则；
+4. 代码是否简洁，是否存在重复或过度复杂；
+5. 测试是否真实且充分；
+6. 安全门禁是否可靠；
+7. 是否允许合并。
+
+请明确给出：
+- 审核评分；
+- 发现的问题；
+- 是否需要Codex继续修复；
+- 是否允许将PR标记为Ready；
+- 是否允许合并。
+
+--------------------------------------------------
+"@
+    if ($notice -match '<[^>]+>') {
+        throw '总指挥审核通知仍含尖括号占位符，拒绝输出。'
+    }
+    return $notice.TrimEnd()
+}
+
+function Wait-CurrentHeadActions {
+    param(
+        [Parameter(Mandatory = $true)][string]$Executable,
+        [Parameter(Mandatory = $true)][string]$Repository,
+        [Parameter(Mandatory = $true)][string]$HeadBranch,
+        [Parameter(Mandatory = $true)][string]$HeadCommit,
+        [Parameter(Mandatory = $true)][int]$TimeoutSeconds
+    )
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    while ($true) {
+        $result = Invoke-Gh -Executable $Executable -GhArguments @(
+            'run', 'list',
+            '--repo', $Repository,
+            '--branch', $HeadBranch,
+            '--commit', $HeadCommit,
+            '--limit', '20',
+            '--json', 'databaseId,status,conclusion,headSha,url,createdAt'
+        )
+        $parsed = @(ConvertFrom-GhJson -Result $result -Label 'GitHub Actions 列表')
+        $runs = @(
+            $parsed |
+                Where-Object { [string]$_.headSha -eq $HeadCommit } |
+                Sort-Object { [datetime]$_.createdAt } -Descending
+        )
+        if ($runs.Count -gt 0) {
+            $pendingRuns = @($runs | Where-Object { [string]$_.status -ne 'completed' })
+            if ($pendingRuns.Count -eq 0) {
+                $failedRuns = @(
+                    $runs |
+                        Where-Object {
+                            [string]$_.conclusion -notin @('success', 'neutral', 'skipped')
+                        }
+                )
+                $primary = $runs[0]
+                $conclusion = if ($failedRuns.Count -eq 0) {
+                    'success'
+                } elseif ($runs.Count -eq 1) {
+                    [string]$primary.conclusion
+                } else {
+                    'failure'
+                }
+                return [pscustomobject]@{
+                    status = 'completed'
+                    conclusion = $conclusion
+                    run_id = [string]$primary.databaseId
+                    url = [string]$primary.url
+                }
+            }
+            Write-Host "GitHub Actions 仍在运行：HEAD=$HeadCommit；继续等待。"
+        } else {
+            Write-Host "尚未发现当前 PR HEAD 的 GitHub Actions；继续等待：$HeadCommit"
+        }
+
+        if ((Get-Date) -ge $deadline) {
+            throw "等待当前 PR HEAD 的 GitHub Actions 超时；不会生成总指挥审核通知：$HeadCommit"
+        }
+        Start-Sleep -Seconds 10
+    }
 }
 
 function Get-ChangedPaths {
@@ -769,6 +1023,35 @@ foreach ($name in $requiredReviewFiles) {
 $reviewContext = Read-ReviewContext
 $taskName = [string]$reviewContext.task_name
 
+if ($RenderCommanderNoticeOnly) {
+    if (-not $CommanderNoticeEvidencePath) {
+        throw '仅渲染总指挥审核通知时必须提供 CommanderNoticeEvidencePath。'
+    }
+    $noticeEvidenceFile = if ([IO.Path]::IsPathRooted($CommanderNoticeEvidencePath)) {
+        $CommanderNoticeEvidencePath
+    } else {
+        Join-Path $repoRoot $CommanderNoticeEvidencePath
+    }
+    if (-not (Test-Path -LiteralPath $noticeEvidenceFile -PathType Leaf)) {
+        throw "总指挥审核通知证据文件不存在：$noticeEvidenceFile"
+    }
+    try {
+        $noticeEvidence = [IO.File]::ReadAllText(
+            $noticeEvidenceFile,
+            [Text.Encoding]::UTF8
+        ) | ConvertFrom-Json
+    } catch {
+        throw "总指挥审核通知证据不是有效 JSON：$noticeEvidenceFile"
+    }
+    $notice = New-CommanderReviewNotice `
+        -Evidence $noticeEvidence `
+        -NoticeTaskId $TaskId `
+        -NoticeTaskName $taskName `
+        -NoticeBranch $branch
+    Write-Host $notice
+    exit 0
+}
+
 if ($RenderReviewOnly) {
     $renderCommit = if ($EvidenceCommit) {
         $EvidenceCommit
@@ -820,6 +1103,25 @@ $login = if ($loginResult.Output.Count -gt 0) { $loginResult.Output[0].Trim() } 
 if ($loginResult.ExitCode -ne 0 -or $login -ne 'huangyongming0327-hash') {
     throw "GitHub 登录账号必须是 huangyongming0327-hash；当前账号：$login"
 }
+$repository = 'huangyongming0327-hash/non-route-distance-calculator'
+$repoInfoResult = Invoke-Gh -Executable $gh -GhArguments @(
+    'repo', 'view', $repository, '--json', 'name,url'
+)
+$repoInfo = ConvertFrom-GhJson -Result $repoInfoResult -Label 'GitHub 仓库信息'
+$masterBefore = (
+    (Invoke-Git -Arguments @('ls-remote', 'origin', 'refs/heads/master')).Output |
+        Sort-Object
+) -join [Environment]::NewLine
+$formalTagsBefore = (
+    (Invoke-Git -Arguments @('ls-remote', '--tags', 'origin')).Output |
+        Sort-Object
+) -join [Environment]::NewLine
+$releaseIdsBefore = (
+    (Invoke-Gh -Executable $gh -GhArguments @(
+        'api', "repos/$repository/releases", '--paginate', '--jq', '.[].id'
+    )).Output |
+        Sort-Object
+) -join [Environment]::NewLine
 $null = Invoke-Git -Arguments @('fetch', 'origin', $BaseBranch)
 
 $pytestOutput = Invoke-CheckedCommand -Label '完整离线 pytest' -Command {
@@ -1009,17 +1311,74 @@ if ($reviewDiff.Output.Count -gt 0) {
 }
 
 $latestCommit = (Invoke-Git -Arguments @('rev-parse', 'HEAD')).Output[0].Trim()
+$prStateResult = Invoke-Gh -Executable $gh -GhArguments @(
+    'pr', 'view', $prUrl,
+    '--repo', $repository,
+    '--json', 'number,url,isDraft,mergedAt,headRefName,headRefOid'
+)
+$prState = ConvertFrom-GhJson -Result $prStateResult -Label 'Pull Request 状态'
+if ([string]$prState.headRefOid -ne $latestCommit) {
+    throw "Pull Request 当前 HEAD 与已推送审核文件不一致；不会生成总指挥审核通知。PR=$($prState.headRefOid) local=$latestCommit"
+}
+
+$actionsEvidence = Wait-CurrentHeadActions `
+    -Executable $gh `
+    -Repository $repository `
+    -HeadBranch ([string]$prState.headRefName) `
+    -HeadCommit ([string]$prState.headRefOid) `
+    -TimeoutSeconds $ActionsWaitTimeoutSeconds
+
+$finalPrResult = Invoke-Gh -Executable $gh -GhArguments @(
+    'pr', 'view', [string]$prState.number,
+    '--repo', $repository,
+    '--json', 'number,url,isDraft,mergedAt,headRefName,headRefOid'
+)
+$finalPr = ConvertFrom-GhJson -Result $finalPrResult -Label '最终 Pull Request 状态'
+if ([string]$finalPr.headRefOid -ne $latestCommit) {
+    throw "等待 Actions 期间 PR HEAD 已变化；不会生成过期的总指挥审核通知。"
+}
+
+$masterAfter = (
+    (Invoke-Git -Arguments @('ls-remote', 'origin', 'refs/heads/master')).Output |
+        Sort-Object
+) -join [Environment]::NewLine
+$formalTagsAfter = (
+    (Invoke-Git -Arguments @('ls-remote', '--tags', 'origin')).Output |
+        Sort-Object
+) -join [Environment]::NewLine
+$releaseIdsAfter = (
+    (Invoke-Gh -Executable $gh -GhArguments @(
+        'api', "repos/$repository/releases", '--paginate', '--jq', '.[].id'
+    )).Output |
+        Sort-Object
+) -join [Environment]::NewLine
+
+$noticeEvidence = [pscustomobject]@{
+    project_name = [string]$repoInfo.name
+    repository_url = [string]$repoInfo.url
+    pr_url = [string]$finalPr.url
+    pr_number = [int]$finalPr.number
+    pr_head = [string]$finalPr.headRefOid
+    actions_status = [string]$actionsEvidence.status
+    actions_conclusion = [string]$actionsEvidence.conclusion
+    actions_run_id = [string]$actionsEvidence.run_id
+    actions_url = [string]$actionsEvidence.url
+    pytest_passed = $passed
+    pytest_failed = $failed
+    pytest_skipped = $skipped
+    safety_scanned = [int]$safetySummary.scanned_file_count
+    safety_changed = [int]$safetySummary.changed_file_count
+    safety_findings = [int]$safetySummary.finding_count
+    pr_draft = [bool]$finalPr.isDraft
+    pr_merged = ($null -ne $finalPr.mergedAt)
+    master_modified = ($masterBefore -ne $masterAfter)
+    release_created = ($releaseIdsBefore -ne $releaseIdsAfter)
+    formal_tag_moved = ($formalTagsBefore -ne $formalTagsAfter)
+}
+$notice = New-CommanderReviewNotice `
+    -Evidence $noticeEvidence `
+    -NoticeTaskId $TaskId `
+    -NoticeTaskName $taskName `
+    -NoticeBranch $branch
 Write-Host ''
-Write-Host '可直接交给总指挥：'
-Write-Host '请审核 GitHub 仓库：'
-Write-Host 'https://github.com/huangyongming0327-hash/non-route-distance-calculator'
-Write-Host ''
-Write-Host '最新待审核任务入口：'
-Write-Host 'docs/reviews/LATEST_REVIEW.md'
-Write-Host ''
-Write-Host 'Pull Request：'
-Write-Host $prUrl
-Write-Host ''
-Write-Host "分支：$branch"
-Write-Host "最新 Commit：$latestCommit"
-Write-Host 'Pull Request 保持草稿且未合并。'
+Write-Host $notice

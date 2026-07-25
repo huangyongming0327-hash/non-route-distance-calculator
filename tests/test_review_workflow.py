@@ -155,8 +155,21 @@ def test_required_workflow_files_and_safety_guards_exist() -> None:
     assert "scan_repository_safety.ps1" in finalize
     assert "validate_review_package.py" in finalize
     assert "REVIEW_CONTEXT.json" in finalize
+    assert "Wait-CurrentHeadActions" in finalize
+    assert "New-CommanderReviewNotice" in finalize
+    assert "headRefOid" in finalize
     assert "建立 Codex 自动上传与 GitHub 在线审核流程" not in finalize
     assert "本任务只建立开发与审核流程" not in finalize
+
+    for path in (
+        ROOT / "AGENTS.md",
+        ROOT / "docs" / "CODEX_TASK_TEMPLATE.md",
+        ROOT / "docs" / "reviews" / "README.md",
+    ):
+        text = path.read_text(encoding="utf-8-sig")
+        assert "【可直接复制给总指挥审核】" in text
+        assert "最终回复" in text
+        assert "最末尾" in text
 
     workflow = (ROOT / ".github" / "workflows" / "pr-validation.yml").read_text(
         encoding="utf-8"
@@ -659,3 +672,161 @@ def test_versioned_actions_status_does_not_pin_run_number() -> None:
         text = path.read_text(encoding="utf-8-sig")
         assert expected in text, path
         assert not re.search(r"GitHub Actions[^\n]*运行\s*\d+", text), path
+
+
+def render_commander_notice(
+    tmp_path: Path,
+    *,
+    actions_status: str,
+    actions_conclusion: str,
+) -> subprocess.CompletedProcess[str]:
+    initialize_repository(tmp_path)
+    task_id = "TASK-NOTICE-001"
+    branch = f"task/{task_id}-review"
+    run("git", "switch", "-c", branch, cwd=tmp_path)
+
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    finalizer = scripts / "finalize_task.ps1"
+    shutil.copy2(ROOT / "scripts" / "finalize_task.ps1", finalizer)
+
+    review_dir = tmp_path / "docs" / "reviews" / task_id
+    review_dir.mkdir(parents=True)
+    for name in REQUIRED_REVIEW_FILES:
+        (review_dir / name).write_text("合成审核通知测试\n", encoding="utf-8")
+
+    context = {
+        "task_name": "固定总指挥通知",
+        "task_goal": ["验证自动审核通知。"],
+        "unfinished_scope": ["不连接 GitHub。"],
+        "key_risks": ["不得输出占位符。"],
+        "test_evidence_notes": ["仅使用离线合成证据。"],
+        "in_scope": "是。",
+        "core_business_changed": "否。",
+        "request_summary": "生成完整总指挥通知。",
+        "acceptance_criteria": ["所有字段完整。"],
+        "known_risks": ["无线上操作。"],
+        "uncertainties": ["无。"],
+        "actions_status": "以Pull Request当前HEAD对应的Checks页面为准。",
+        "task_result": {
+            "user_request": "生成通知。",
+            "implementation": ["增加通知渲染。"],
+            "not_implemented": ["不执行网络请求。"],
+            "design_tradeoffs": ["使用离线证据模式测试。"],
+            "business_rules_changed": "否。",
+            "merge_recommendation": "由审核者决定。",
+        },
+        "known_issues": {
+            "known": ["无。"],
+            "deferred": ["无。"],
+            "user_impact": "只影响审核通知。",
+            "blocks_merge": "否。",
+            "follow_up": ["复核通知。"],
+        },
+    }
+    (review_dir / "REVIEW_CONTEXT.json").write_text(
+        json.dumps(context, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    evidence = {
+        "project_name": "synthetic-project",
+        "repository_url": "https://github.com/example/example",
+        "pr_url": "https://github.com/example/example/pull/7",
+        "pr_number": 7,
+        "pr_head": "2" * 40,
+        "actions_status": actions_status,
+        "actions_conclusion": actions_conclusion,
+        "actions_run_id": "99887766",
+        "actions_url": "https://github.com/example/example/actions/runs/99887766",
+        "pytest_passed": 9,
+        "pytest_failed": 0,
+        "pytest_skipped": 2,
+        "safety_scanned": 12,
+        "safety_changed": 4,
+        "safety_findings": 0,
+        "pr_draft": True,
+        "pr_merged": False,
+        "master_modified": False,
+        "release_created": False,
+        "formal_tag_moved": False,
+    }
+    evidence_path = tmp_path / "notice-evidence.json"
+    evidence_path.write_text(
+        json.dumps(evidence, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    return run(
+        "powershell",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(finalizer),
+        "-TaskId",
+        task_id,
+        "-CommitMessage",
+        "test notice",
+        "-PrTitle",
+        "test notice",
+        "-RenderCommanderNoticeOnly",
+        "-CommanderNoticeEvidencePath",
+        str(evidence_path),
+        cwd=tmp_path,
+        check=False,
+    )
+
+
+def test_commander_notice_uses_complete_actual_evidence(tmp_path: Path) -> None:
+    completed = render_commander_notice(
+        tmp_path,
+        actions_status="completed",
+        actions_conclusion="success",
+    )
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    notice = completed.stdout
+    assert "【可直接复制给总指挥审核】" in notice
+    assert "项目：synthetic-project" in notice
+    assert "任务：TASK-NOTICE-001｜固定总指挥通知" in notice
+    assert "https://github.com/example/example/pull/7" in notice
+    assert "PR编号：#7" in notice
+    assert "2" * 40 in notice
+    assert "task/TASK-NOTICE-001-review" in notice
+    assert "docs/reviews/LATEST_REVIEW.md" in notice
+    assert "docs/reviews/TASK-NOTICE-001/" in notice
+    assert "成功；运行 99887766" in notice
+    assert "https://github.com/example/example/actions/runs/99887766" in notice
+    assert "9 passed，0 failed，2 skipped" in notice
+    assert "12 个文件，4 个差异文件，0 个命中" in notice
+    assert "- PR是否Draft：是" in notice
+    assert "- PR是否已合并：否" in notice
+    assert not re.search(r"<[^>]+>", notice)
+
+
+def test_commander_notice_is_blocked_while_actions_are_running(
+    tmp_path: Path,
+) -> None:
+    completed = render_commander_notice(
+        tmp_path,
+        actions_status="in_progress",
+        actions_conclusion="",
+    )
+
+    assert completed.returncode != 0
+    assert "【可直接复制给总指挥审核】" not in completed.stdout
+    assert "GitHub Actions 尚未完成" in completed.stderr
+
+
+def test_commander_notice_reports_failed_actions_as_failure(
+    tmp_path: Path,
+) -> None:
+    completed = render_commander_notice(
+        tmp_path,
+        actions_status="completed",
+        actions_conclusion="failure",
+    )
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert "GitHub Actions：\n失败（failure）；运行 99887766" in completed.stdout
+    assert "GitHub Actions：\n成功" not in completed.stdout

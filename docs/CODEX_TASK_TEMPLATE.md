@@ -55,7 +55,8 @@
 - 禁止上传 Key、Token、密码、凭据、`.env`。
 - 禁止上传业务 Excel、完整地址、手机号、经纬度、地址库、缓存、日志、数据库。
 - 禁止上传 EXE、ZIP、release 或含敏感历史的 Bundle。
-- 只允许位于测试目录、明确标记为合成的测试数据。
+- 测试、synthetic、mock、示例或合成等名称不形成个人数据或二进制文件豁免。
+- 普通任务不得新增或修改未经人工审核授权的图片或 PDF。
 
 ## Git 与在线审核流程
 
@@ -73,5 +74,11 @@
    ```
 
 6. 自动推送任务分支、创建或更新草稿 Pull Request、上传审核文件。
-7. 不自动合并，不自动发布，不移动标签。
-8. 最终只提供 PR 地址、分支、最新 Commit、Actions 结果和 `docs/reviews/LATEST_REVIEW.md`。
+7. 等待 Pull Request 当前 HEAD 对应的 GitHub Actions 完成；仍在运行时不得结束任务。
+8. 从 GitHub、Git、pytest 和安全扫描真实结果生成
+   `【可直接复制给总指挥审核】` 通知，不要求用户查找或填写任何字段。
+9. 通知必须包含仓库和 PR 地址、PR 编号、当前 HEAD、任务分支、Actions 运行信息、
+   审核路径、测试和安全结果，以及 Draft、合并、master、Release 和正式标签状态。
+10. Actions 失败时通知必须明确写失败；PR、HEAD 或 Actions 无法取得时不得宣称完成。
+11. 完整通知必须放在 Codex 最终回复最末尾，用户只需复制整段给总指挥。
+12. 不自动合并，不自动发布，不修改 master，不移动标签。
