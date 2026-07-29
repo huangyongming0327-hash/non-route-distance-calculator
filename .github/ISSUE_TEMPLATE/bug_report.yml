@@ -1,0 +1,81 @@
+name: Bug 报告
+description: 报告可以稳定复现的问题；提交前请先删除业务数据和凭据。
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        只提交脱敏信息。禁止上传 Key、Token、凭据、业务 Excel、完整地址、地址库、缓存或未经脱敏的日志。
+  - type: input
+    id: software_version
+    attributes:
+      label: 软件版本
+      placeholder: 例如 V1.0
+    validations:
+      required: true
+  - type: input
+    id: windows_version
+    attributes:
+      label: Windows 版本
+      placeholder: 例如 Windows 11 23H2
+    validations:
+      required: true
+  - type: input
+    id: office_version
+    attributes:
+      label: Excel/WPS 版本
+      placeholder: 例如 Microsoft 365 Excel 或 WPS 12.x
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 操作步骤
+      description: 使用合成数据说明，不要粘贴真实业务文件或完整地址。
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+    validations:
+      required: true
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: 是否稳定复现
+      options:
+        - 每次都能复现
+        - 偶尔复现
+        - 只出现一次
+    validations:
+      required: true
+  - type: dropdown
+    id: unresponsive
+    attributes:
+      label: 是否出现未响应
+      options:
+        - 否
+        - 是
+    validations:
+      required: true
+  - type: textarea
+    id: sanitized_evidence
+    attributes:
+      label: 脱敏截图或日志
+      description: 可选。必须删除 Key、凭据、业务地址、电话、经纬度、工作簿内容和本机路径。
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: 安全确认
+      options:
+        - label: 我确认未上传 Key、业务 Excel、完整地址、地址库、缓存或凭据。
+          required: true

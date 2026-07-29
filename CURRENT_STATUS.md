@@ -1,48 +1,26 @@
-# 当前状态：V1.0 已通过验收并正式定版
+# 当前状态：TASK-GITHUB-002 待审核
 
-更新日期：2026-07-23
+更新日期：2026-07-25
 
-## 发布状态
+## 基础分支与审核范围
 
-- 正式版本：V1.0
-- 正式分支：`release/v1.0`
-- TASK-007A 清理后提交：`a35b7a7e0b8958758e07f689d30ccb6f2448311a`
-- V1.0 正式构建提交：`4075063ff8c0425715bbedbf70b6ffc10dd4ca9e`
-- 注释标签：`v1.0`
-- 程序标题：非线路运距计算工具 V1.0 — 高德普通驾车距离版
-- 历史基线标签、历史发布分支、历史发布目录和报告均保留。
-- 首次 GitHub 推送前已重写本地历史，清除业务地址、电话、坐标、业务截图和工作簿验收元数据；清理前提交号不再有效。
+- 基础分支：`master`。
+- 基础 Commit：`290153e240f059f7e3ffda34476446d77da409b8`。
+- `finalize_task.ps1` 不执行合并、标签移动或 Release 创建。
 
-## 用户实机验收
+## 最新待审核任务
 
-- 选择输出目录后不再卡顿，表头和字段自动检测不再长时间无响应。
-- 同一未变化文件第二次检测明显更快，检测缓存正常生效。
-- Microsoft Excel 与 WPS 保存和结果检查正常。
-- 普通驾车距离、可信地址库、缓存和结果口径未发现异常。
-- 既有实际业务验收覆盖 74 条目标报价：73 条距离缓存复用，1 条多目的地警告符合预期。
+- 任务：TASK-GITHUB-002 — 建立自动上传与在线审核流程（FIX3 安全收尾）。
+- 任务分支：`task/TASK-GITHUB-002-review-workflow`。
+- Pull Request：https://github.com/huangyongming0327-hash/non-route-distance-calculator/pull/1
+- 审核目标：Pull Request 当前 HEAD。
+- 生成证据 Commit：`59a44e43ef0d4428e70e8d75dc5efc32f172a9e9`。
+- 固定审核入口：`docs/reviews/LATEST_REVIEW.md`。
+- 测试摘要：233 passed，0 failed，4 skipped；编译、差异和安全扫描通过。
+- GitHub Actions结果：以Pull Request当前HEAD对应的Checks页面为准。
 
-## 正式交付
+## 合并状态
 
-- EXE：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0\非线路运距计算工具.exe`
-- ZIP：`D:\AI project\非线路运距计算\release\非线路运距计算工具_V1.0_便携版.zip`
-- 自动测试：200 passed，4 skipped，0 failed；显式 Office 测试：4 passed。
-- 性能专项：11 passed；281/2,000/10,000 行首次检测均低于 1 秒，缓存检测更快。
-- 便携验证：正式目录、中文路径、带空格路径均通过；正式目录和 ZIP 安全扫描 0 命中。
-- EXE SHA-256：`F5ADE01A2415AECA7CA2FF60D9F7063EB3FC9794686C7DA65F7CAF1C9AEC8A91`。
-- ZIP SHA-256：`8A33F080F6BF040B122EE6C35335577E3BB0F8D6B9EFE30F58F664BF159F9ED1`。
-- 发布报告：`docs\FINAL_RELEASE_REPORT.md`
-- 任务结果：`docs\TASK-008_RESULT.md`
-- 性能报告：`docs\PERFORMANCE_OPTIMIZATION_REPORT.md`
-
-## 新电脑与数据持久化
-
-- 便携版不需要安装 Python；必须把整个 ZIP 全部解压，保留 `_internal`，不能只复制 EXE 或在压缩包内运行。
-- 目标电脑至少安装 Microsoft Excel 或 WPS 表格中的一种；每台新电脑由当前 Windows 用户重新输入并保存高德 Key。
-- 可信地址库和缓存每台电脑通常只需首次导入一次，关闭程序或电脑不会丢失；重新解压到全新目录或删除 `cache` 后才需重新导入。
-- 未导入缓存时程序会按需重新调用 API，并在本机逐步积累缓存；地址库和缓存 JSON 可能含业务地址，必须受控保存。
-
-## 已知限制
-
-普通驾车参考距离不代表货车实际可通行路线，不考虑货车限高、限宽、限重、禁行和车牌政策。多目的地必须拆分，程序不自动排序。WPS 依赖目标机 COM 注册；Key 绑定当前 Windows 用户。Windows 10 尚未完成专项实机验证，首次使用必须先用业务文件副本测试。
-
-V1.0 到此定版，暂停，不继续 V1.1 或其他新功能。
+- 尚未合并。
+- 未完成最终验收。
+- 下一步等待用户和总指挥审核，不自动合并、不自动发布。

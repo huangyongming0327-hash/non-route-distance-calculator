@@ -1,0 +1,55 @@
+{
+  "task_name": "{{TASK_NAME}}",
+  "task_goal": [
+    "{{TASK_GOAL}}"
+  ],
+  "unfinished_scope": [
+    "{{UNFINISHED_SCOPE}}"
+  ],
+  "key_risks": [
+    "{{KEY_RISKS}}"
+  ],
+  "test_evidence_notes": [
+    "{{TEST_EVIDENCE_NOTES}}"
+  ],
+  "in_scope": "{{IN_SCOPE}}",
+  "core_business_changed": "{{CORE_BUSINESS_CHANGED}}",
+  "request_summary": "{{REQUEST_SUMMARY}}",
+  "acceptance_criteria": [
+    "{{ACCEPTANCE_CRITERIA}}"
+  ],
+  "known_risks": [
+    "{{KNOWN_RISKS}}"
+  ],
+  "uncertainties": [
+    "{{UNCERTAINTIES}}"
+  ],
+  "actions_status": "以Pull Request当前HEAD对应的Checks页面为准。",
+  "task_result": {
+    "user_request": "{{USER_REQUEST}}",
+    "implementation": [
+      "{{IMPLEMENTATION}}"
+    ],
+    "not_implemented": [
+      "{{NOT_IMPLEMENTED}}"
+    ],
+    "design_tradeoffs": [
+      "{{DESIGN_TRADEOFFS}}"
+    ],
+    "business_rules_changed": "{{BUSINESS_RULES_CHANGED}}",
+    "merge_recommendation": "{{MERGE_RECOMMENDATION}}"
+  },
+  "known_issues": {
+    "known": [
+      "{{KNOWN_ISSUES}}"
+    ],
+    "deferred": [
+      "{{DEFERRED_ISSUES}}"
+    ],
+    "user_impact": "{{USER_IMPACT}}",
+    "blocks_merge": "{{BLOCKS_MERGE}}",
+    "follow_up": [
+      "{{FOLLOW_UP}}"
+    ]
+  }
+}

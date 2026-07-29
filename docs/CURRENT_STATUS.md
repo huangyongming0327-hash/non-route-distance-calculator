@@ -11,3 +11,5 @@ V1.0 已通过用户实际业务验收并完成正式定版。完整状态见项
 - `docs/evidence/release/security_scan.json`
 
 Windows 10 尚未完成专项实机验证；首次使用应先用业务文件副本测试。
+
+GitHub 仓库当前为 Public。公开仓库禁止上传任何业务数据、完整地址、工作簿、缓存、日志、Key、Token 或其他凭据。
